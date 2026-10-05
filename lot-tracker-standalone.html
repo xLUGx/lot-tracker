@@ -311,7 +311,16 @@ function lotClass(lot) {
 }
 
 function lotRank(lot) {
-  return LOT_ORDER[lot] ?? 99;
+  return LOT_ORDER[normLot(lot)] ?? 99;
+}
+
+/** Normalize lot ids so AAA casing / blanks never hide cars from tabs. */
+function normLot(lot) {
+  const s = String(lot ?? "").trim();
+  if (!s) return "";
+  const u = s.toUpperCase();
+  if (u === "AAA") return "AAA";
+  return s;
 }
 
 let store = { overrides: {}, added: [] };
@@ -343,7 +352,7 @@ function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
 
 // Master fields: SEED wins when local value is empty (stale full-snapshot
 // overrides used to blank newly pushed workStatus/issues).
-const SEED_PREFERS_IF_LOCAL_EMPTY = new Set(["workStatus", "issues"]);
+const SEED_PREFERS_IF_LOCAL_EMPTY = new Set(["workStatus", "issues", "lot", "status"]);
 
 function isEmptyVal(v) {
   return v == null || String(v).trim() === "";
@@ -508,6 +517,8 @@ function mergeCars() {
     }
     if (!c.status) c.status = "On lot";
     if (c.workStatus == null) c.workStatus = "";
+    // Keep holding/seed lots visible even if a stale override blanked or mis-cased lot
+    c.lot = normLot(c.lot);
   }
   return out;
 }
@@ -567,7 +578,8 @@ function filteredList(cars, q) {
       return matches(c, tokens).ok;
     }
     if (filter === "9" || filter === "12" || filter === "1" || filter === "AAA") {
-      if (c.lot !== filter) return false;
+      // Location tabs: lot only (do NOT also require status === "On lot")
+      if (normLot(c.lot) !== filter) return false;
     }
     // Spec: All | Lot 9 | Lot 12 | Lot 1 | AAA | Issues | Status
     return matches(c, tokens).ok;
@@ -618,10 +630,10 @@ function renderSections(list, q) {
   const tokens = tokensOf(q);
   const searching = tokens.length > 0;
   if (filter === "all") {
-    const g9 = list.filter(c => c.lot === "9");
-    const g12 = list.filter(c => c.lot === "12");
-    const g1 = list.filter(c => c.lot === "1");
-    const gAAA = list.filter(c => c.lot === "AAA");
+    const g9 = list.filter(c => normLot(c.lot) === "9");
+    const g12 = list.filter(c => normLot(c.lot) === "12");
+    const g1 = list.filter(c => normLot(c.lot) === "1");
+    const gAAA = list.filter(c => normLot(c.lot) === "AAA");
     let html = "";
     if (searching) {
       $("matchCounts").textContent = `Matches: Lot 9 · ${g9.length}, Lot 12 · ${g12.length}, Lot 1 · ${g1.length}, AAA · ${gAAA.length} (total ${list.length})`;
@@ -634,24 +646,20 @@ function renderSections(list, q) {
     html += `<section class="lot-section" id="live-lot-12"><h2 class="lot-head lot-head-12">Lot 12 · ${g12.length} cars</h2>`;
     html += g12.length ? g12.map(cardHTML).join("") : `<p class="sub">No cars on Lot 12 match.</p>`;
     html += `</section>`;
-    // Lot 1 & AAA: holding places — hide when empty (seed starts at zero)
-    if (g1.length || searching) {
-      html += `<section class="lot-section" id="live-lot-1"><h2 class="lot-head lot-head-1">Lot 1 · ${g1.length} cars</h2>`;
-      html += g1.length ? g1.map(cardHTML).join("") : `<p class="sub">No cars on Lot 1 match.</p>`;
-      html += `</section>`;
-    }
-    if (gAAA.length || searching) {
-      html += `<section class="lot-section" id="live-lot-AAA"><h2 class="lot-head lot-head-AAA">AAA · ${gAAA.length} cars</h2>`;
-      html += gAAA.length ? gAAA.map(cardHTML).join("") : `<p class="sub">No cars at AAA match.</p>`;
-      html += `</section>`;
-    }
+    // Always show Lot 1 & AAA (SEED now includes AAA cars; empty state is clearer than hiding)
+    html += `<section class="lot-section" id="live-lot-1"><h2 class="lot-head lot-head-1">Lot 1 · ${g1.length} cars</h2>`;
+    html += g1.length ? g1.map(cardHTML).join("") : `<p class="sub">No cars on Lot 1.</p>`;
+    html += `</section>`;
+    html += `<section class="lot-section" id="live-lot-AAA"><h2 class="lot-head lot-head-AAA">AAA · ${gAAA.length} cars</h2>`;
+    html += gAAA.length ? gAAA.map(cardHTML).join("") : `<p class="sub">No cars at AAA.</p>`;
+    html += `</section>`;
     return html;
   }
   if (searching) {
-    const n9 = list.filter(c => c.lot === "9").length;
-    const n12 = list.filter(c => c.lot === "12").length;
-    const n1 = list.filter(c => c.lot === "1").length;
-    const nAAA = list.filter(c => c.lot === "AAA").length;
+    const n9 = list.filter(c => normLot(c.lot) === "9").length;
+    const n12 = list.filter(c => normLot(c.lot) === "12").length;
+    const n1 = list.filter(c => normLot(c.lot) === "1").length;
+    const nAAA = list.filter(c => normLot(c.lot) === "AAA").length;
     $("matchCounts").textContent = `Matches: Lot 9 · ${n9}, Lot 12 · ${n12}, Lot 1 · ${n1}, AAA · ${nAAA} (showing ${list.length})`;
   } else {
     $("matchCounts").textContent = "";
@@ -659,10 +667,10 @@ function renderSections(list, q) {
   if (!list.length) return `<p class="sub">No cars match.</p>`;
   // single lot or issues — still group by lot if mixed (issues can span locations)
   if (filter === "issues" || filter === "status") {
-    const g9 = list.filter(c => c.lot === "9").sort(sortWithin);
-    const g12 = list.filter(c => c.lot === "12").sort(sortWithin);
-    const g1 = list.filter(c => c.lot === "1").sort(sortWithin);
-    const gAAA = list.filter(c => c.lot === "AAA").sort(sortWithin);
+    const g9 = list.filter(c => normLot(c.lot) === "9").sort(sortWithin);
+    const g12 = list.filter(c => normLot(c.lot) === "12").sort(sortWithin);
+    const g1 = list.filter(c => normLot(c.lot) === "1").sort(sortWithin);
+    const gAAA = list.filter(c => normLot(c.lot) === "AAA").sort(sortWithin);
     let html = "";
     if (g9.length) {
       html += `<section class="lot-section"><h2 class="lot-head lot-head-9">Lot 9 · ${g9.length} cars</h2>${g9.map(cardHTML).join("")}</section>`;
@@ -860,7 +868,8 @@ document.querySelectorAll("#tabs button").forEach(b => {
   b.addEventListener("click", () => {
     document.querySelectorAll("#tabs button").forEach(x => x.classList.remove("on"));
     b.classList.add("on");
-    filter = b.dataset.lot;
+    const raw = b.getAttribute("data-lot") || "all";
+    filter = (raw === "all" || raw === "issues" || raw === "status") ? raw : (normLot(raw) || raw);
     const wrap = $("statusFilterWrap");
     if (filter === "status") wrap.classList.add("on");
     else wrap.classList.remove("on");
@@ -887,8 +896,11 @@ $("resetMaster").onclick = () => {
     : "Reload the server list on this phone? (No local edits found.)";
   if (!confirm(msg)) return;
   clearLocalOverrides();
-  show();
-  alert("Reloaded from server list. Seed statuses should show now.");
+  // Must re-fetch index.html so inline SEED (including AAA) is current — show() alone
+  // only re-reads the already-loaded (possibly cached) page.
+  const url = new URL(location.href);
+  url.searchParams.set("reset", String(Date.now()));
+  location.replace(url.toString());
 };
 
 $("form").photo.addEventListener("change", () => {
