@@ -81,10 +81,12 @@
   .ws-orange { background:#e2a04a; color:#1a1206; }
   .ws-red { background:#d45a5a; color:#1a0a0a; }
   .ws-yellow { background:#d4c23a; color:#1a1606; }
+  .ws-blue { background:#5a9fd4; color:#0a121a; }
   article.ws-border-green, .card.ws-border-green { border-left-color:#4caf7a !important; border-left-width:5px; }
   article.ws-border-orange, .card.ws-border-orange { border-left-color:#e2a04a !important; border-left-width:5px; }
   article.ws-border-red, .card.ws-border-red { border-left-color:#d45a5a !important; border-left-width:5px; }
   article.ws-border-yellow, .card.ws-border-yellow { border-left-color:#d4c23a !important; border-left-width:5px; }
+  article.ws-border-blue, .card.ws-border-blue { border-left-color:#5a9fd4 !important; border-left-width:5px; }
   .status-filter { margin:8px 0 0; display:none; }
   .status-filter.on { display:block; }
 </style>
@@ -111,6 +113,7 @@
       <option value="Waiting on parts">Waiting on parts</option>
       <option value="Needs motor or transmission">Needs motor or transmission</option>
       <option value="Ready to come into shop">Ready to come into shop</option>
+      <option value="In the shop">In the shop</option>
       <option value="Ready for truck">Ready for truck</option>
     </select>
   </div>
@@ -200,7 +203,8 @@ const WORK_STATUS = {
     { value: "Ready for lot", color: "green" },
     { value: "Waiting on parts", color: "orange" },
     { value: "Needs motor or transmission", color: "red" },
-    { value: "Ready to come into shop", color: "yellow" }
+    { value: "Ready to come into shop", color: "yellow" },
+    { value: "In the shop", color: "blue" }
   ],
   "9": [
     { value: "Ready for truck", color: "green" }
@@ -211,6 +215,7 @@ const WORK_STATUS = {
     { value: "Waiting on parts", color: "orange" },
     { value: "Needs motor or transmission", color: "red" },
     { value: "Ready to come into shop", color: "yellow" },
+    { value: "In the shop", color: "blue" },
     { value: "Ready for truck", color: "green" }
   ],
   "AAA": [
@@ -218,6 +223,7 @@ const WORK_STATUS = {
     { value: "Waiting on parts", color: "orange" },
     { value: "Needs motor or transmission", color: "red" },
     { value: "Ready to come into shop", color: "yellow" },
+    { value: "In the shop", color: "blue" },
     { value: "Ready for truck", color: "green" }
   ]
 };
@@ -226,6 +232,7 @@ const WORK_STATUS_COLOR = {
   "Waiting on parts": "orange",
   "Needs motor or transmission": "red",
   "Ready to come into shop": "yellow",
+  "In the shop": "blue",
   "Ready for truck": "green"
 };
 let statusFilterValue = "";

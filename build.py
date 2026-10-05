@@ -49,6 +49,7 @@ WS_COLOR = {
     "Waiting on parts": "orange",
     "Needs motor or transmission": "red",
     "Ready to come into shop": "yellow",
+    "In the shop": "blue",
     "Ready for truck": "green",
 }
 
