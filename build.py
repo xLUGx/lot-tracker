@@ -44,26 +44,39 @@ def lot_cls(lot: str) -> str:
     return "l9"
 
 
+WS_COLOR = {
+    "Ready for lot": "green",
+    "Waiting on parts": "orange",
+    "Needs motor or transmission": "red",
+    "Ready to come into shop": "yellow",
+    "Ready for truck": "green",
+}
+
+
 def card_html(c: dict) -> str:
     has = " has" if c.get("issues") else ""
     lot = c.get("lot") or "9"
     lc = lot_cls(lot)
+    ws = c.get("workStatus") or ""
+    ws_color = WS_COLOR.get(ws, "")
+    ws_border = f" ws-border-{ws_color}" if ws_color else ""
     color = f" · {esc(c['color'])}" if c.get("color") else ""
     miles = miles_fmt(c.get("miles"))
     purchased = c.get("purchased") or "no purchase date"
     meta2 = f"{miles} mi · purchased {esc(purchased)}" if c.get("miles") else f"purchased {esc(purchased)}"
     issue = f'<div class="issue">{esc(c["issues"])}</div>' if c.get("issues") else ""
     flag = f'<div class="warn">{esc(c["flag"])}</div>' if c.get("flag") else ""
+    badge = f'<div class="ws-badge ws-{ws_color}">{esc(ws)}</div>' if ws and ws_color else ""
     vin = esc(c.get("vin") or "—")
     sid = esc(c.get("stock") or "")
     return (
-        f'<article class="card {lc}{has}" id="s{sid}">'
+        f'<article class="card {lc}{has}{ws_border}" id="s{sid}">'
         f'<div class="top"><span class="stock">{sid}</span>'
         f'<span class="lot {lc}">{esc(lot_label(lot))}</span></div>'
         f'<div class="meta">{esc(c.get("year"))} {esc(c.get("make"))} {esc(c.get("model"))}{color}</div>'
         f'<div class="meta">{meta2}</div>'
         f'<div class="meta vin">VIN (last 6): {vin}</div>'
-        f'{issue}{flag}'
+        f'{badge}{issue}{flag}'
         f"</article>"
     )
 
