@@ -67,7 +67,8 @@
   textarea { width:100%; min-height:90px; }
   .photo { width:100%; border-radius:10px; margin-top:8px; display:none; }
   .bar { position:fixed; bottom:0; left:0; right:0; display:flex; gap:8px; padding:10px 14px calc(10px + env(safe-area-inset-bottom)); background:#12171cf0; border-top:1px solid var(--line); z-index:3; }
-  .bar button { flex:1; font-size:14px; }
+  .bar button { flex:1; font-size:12px; padding:8px 6px; }
+  .bar button#resetMaster { flex:1.35; }
   .warn { color:var(--amber); font-size:12px; margin-top:6px; }
   .jumps { margin:8px 0 12px; font-size:14px; }
   .jumps a { color:var(--teal); }
@@ -94,7 +95,7 @@
 <body>
 <header>
   <h1>Lot 9, Lot 12, Lot 1, and AAA</h1>
-  <p class="sub">David's Auto Sales. Seeded from the 10/01/2026 aged inventory report. Stored on this phone.</p>
+  <p class="sub">David's Auto Sales. Seeded from the 10/01/2026 aged inventory report. Server list is master; this phone only keeps your edits. Use <strong>Reset to server list</strong> if statuses look wrong.</p>
   <input id="q" type="search" placeholder="Stock #, VIN (last 6), or make/model" enterkeyhint="search" autocomplete="off" autocorrect="off" spellcheck="false">
   <div class="tabs" id="tabs">
     <button type="button" class="on" data-lot="all">All</button>
@@ -181,6 +182,7 @@
 <div class="bar" id="bar" hidden>
   <button type="button" id="add">Add car</button>
   <button type="button" id="export">Export CSV</button>
+  <button type="button" id="resetMaster" title="Clear phone overrides and reload the server list">Reset to server list</button>
   <button type="button" class="primary" id="copy">Copy for Grok</button>
 </div>
 <dialog id="dlg">
@@ -333,16 +335,50 @@ function seedByStock() {
 
 function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
 
-function diffAgainstSeed(car, seed) {
+// Master fields: SEED wins when local value is empty (stale full-snapshot
+// overrides used to blank newly pushed workStatus/issues).
+const SEED_PREFERS_IF_LOCAL_EMPTY = new Set(["workStatus", "issues"]);
+
+function isEmptyVal(v) {
+  return v == null || String(v).trim() === "";
+}
+
+function diffAgainstSeed(car, seed, opts) {
+  // opts.preferSeedIfLocalEmpty: when migrating old full lists, do not record
+  // empty local workStatus/issues as overrides over non-empty SEED.
+  const prefer = !!(opts && opts.preferSeedIfLocalEmpty);
   if (!seed) return deepClone(car);
   const o = {};
   for (const k of TRACKED) {
     const a = car[k] ?? "";
     const b = seed[k] ?? "";
-    if (String(a) !== String(b)) o[k] = car[k];
+    if (String(a) === String(b)) continue;
+    if (prefer && SEED_PREFERS_IF_LOCAL_EMPTY.has(k) && isEmptyVal(a) && !isEmptyVal(b)) {
+      continue; // keep SEED
+    }
+    o[k] = car[k];
   }
   if (car.updated) o.updated = car.updated;
   return o;
+}
+
+function snapshotToStore(cars) {
+  const bySeed = seedByStock();
+  const overrides = {};
+  const added = [];
+  const seedStocks = new Set(SEED.map(c => c.stock));
+  for (const c of cars) {
+    if (!c || !c.stock) continue;
+    if (!seedStocks.has(c.stock)) {
+      added.push(c);
+      continue;
+    }
+    const d = diffAgainstSeed(c, bySeed[c.stock], { preferSeedIfLocalEmpty: true });
+    // Drop keys that are only "updated" with no field changes
+    const fieldKeys = Object.keys(d).filter(k => k !== "updated");
+    if (fieldKeys.length) overrides[c.stock] = d;
+  }
+  return { overrides, added };
 }
 
 function migrateFromV1() {
@@ -351,56 +387,111 @@ function migrateFromV1() {
     if (!raw) return null;
     const cars = JSON.parse(raw);
     if (!Array.isArray(cars)) return null;
-    const bySeed = seedByStock();
-    const overrides = {};
-    const added = [];
-    const seedStocks = new Set(SEED.map(c => c.stock));
-    for (const c of cars) {
-      if (!c || !c.stock) continue;
-      if (!seedStocks.has(c.stock)) {
-        added.push(c);
-        continue;
-      }
-      const d = diffAgainstSeed(c, bySeed[c.stock]);
-      if (Object.keys(d).length) overrides[c.stock] = d;
-    }
-    return { overrides, added };
+    return snapshotToStore(cars);
   } catch (e) {
     return null;
   }
 }
 
+function applyOverride(seedCar, o) {
+  if (!o) return Object.assign({}, seedCar);
+  const merged = Object.assign({}, seedCar);
+  for (const k of Object.keys(o)) {
+    if (k === "updated") {
+      merged.updated = o.updated;
+      continue;
+    }
+    if (!(TRACKED.includes(k) || k === "stock")) continue;
+    const localVal = o[k];
+    if (SEED_PREFERS_IF_LOCAL_EMPTY.has(k) && isEmptyVal(localVal) && !isEmptyVal(seedCar[k])) {
+      continue; // SEED is source of truth when phone never set a real value
+    }
+    merged[k] = localVal;
+  }
+  return merged;
+}
+
+function sanitizeOverrides() {
+  // Heal stale blanking overrides (old full snapshot / bad v1 migrate) and
+  // drop override fields that no longer differ from current SEED.
+  const bySeed = seedByStock();
+  let changed = false;
+  const next = {};
+  for (const stock of Object.keys(store.overrides || {})) {
+    const seed = bySeed[stock];
+    const o = store.overrides[stock];
+    if (!o || typeof o !== "object") { changed = true; continue; }
+    if (!seed) {
+      // Orphan override for a stock no longer in SEED — keep as-is (rare)
+      next[stock] = o;
+      continue;
+    }
+    // Rebuild a clean diff from the effective local view, preferring SEED
+    // for empty workStatus/issues. Also handles full-car objects stored as overrides.
+    const localView = Object.assign({}, seed, o);
+    const d = diffAgainstSeed(localView, seed, { preferSeedIfLocalEmpty: true });
+    const fieldKeys = Object.keys(d).filter(k => k !== "updated");
+    if (!fieldKeys.length) {
+      changed = true;
+      continue;
+    }
+    // Detect change vs previous override
+    const prevKeys = Object.keys(o).sort().join(",");
+    const nextKeys = Object.keys(d).sort().join(",");
+    if (prevKeys !== nextKeys || JSON.stringify(o) !== JSON.stringify(d)) changed = true;
+    next[stock] = d;
+  }
+  if (changed || Object.keys(next).length !== Object.keys(store.overrides || {}).length) {
+    store.overrides = next;
+    return true;
+  }
+  return false;
+}
+
 function loadStore() {
+  let loaded = false;
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === "object" && parsed.overrides) {
+      // Legacy: some devices may still hold a full car array under v2
+      if (Array.isArray(parsed)) {
+        store = snapshotToStore(parsed);
+        loaded = true;
+      } else if (parsed && typeof parsed === "object" && parsed.overrides) {
         store = { overrides: parsed.overrides || {}, added: parsed.added || [] };
-        return;
+        loaded = true;
       }
     }
   } catch (e) {}
-  const migrated = migrateFromV1();
-  if (migrated) {
-    store = migrated;
-    saveStore();
-    try { localStorage.removeItem(OLD_KEY); } catch (e) {}
-  } else {
-    store = { overrides: {}, added: [] };
+  if (!loaded) {
+    const migrated = migrateFromV1();
+    if (migrated) {
+      store = migrated;
+      loaded = true;
+      try { localStorage.removeItem(OLD_KEY); } catch (e) {}
+    } else {
+      store = { overrides: {}, added: [] };
+    }
   }
+  const healed = sanitizeOverrides();
+  if (loaded || healed) saveStore();
 }
 
 function saveStore() {
   localStorage.setItem(KEY, JSON.stringify(store));
 }
 
+function clearLocalOverrides() {
+  store = { overrides: {}, added: [] };
+  try { localStorage.removeItem(KEY); } catch (e) {}
+  try { localStorage.removeItem(OLD_KEY); } catch (e) {}
+  saveStore();
+}
+
 function mergeCars() {
   const bySeed = seedByStock();
-  const out = SEED.map(c => {
-    const o = store.overrides[c.stock];
-    return o ? Object.assign({}, c, o) : Object.assign({}, c);
-  });
+  const out = SEED.map(c => applyOverride(c, store.overrides[c.stock]));
   for (const a of store.added) {
     if (!bySeed[a.stock]) out.push(Object.assign({}, a));
   }
@@ -649,8 +740,9 @@ function persistCar(car, isNew) {
     else store.added.push(car);
     // if somehow overriding a seed stock via rename — handled by stock readOnly on edit
   } else {
-    const d = diffAgainstSeed(car, bySeed[car.stock]);
-    if (Object.keys(d).length) store.overrides[car.stock] = d;
+    const d = diffAgainstSeed(car, bySeed[car.stock], { preferSeedIfLocalEmpty: true });
+    const fieldKeys = Object.keys(d).filter(k => k !== "updated");
+    if (fieldKeys.length) store.overrides[car.stock] = d;
     else delete store.overrides[car.stock];
   }
   saveStore();
@@ -782,6 +874,16 @@ $("q").addEventListener("input", show);
 $("add").onclick = () => openEdit("");
 $("cancel").onclick = () => $("dlg").close();
 $("copyClose").onclick = () => $("copyDlg").close();
+$("resetMaster").onclick = () => {
+  const n = Object.keys(store.overrides || {}).length + (store.added || []).length;
+  const msg = n
+    ? `Clear ${n} local change(s) on this phone and reload the server list? Your offline edits will be lost.`
+    : "Reload the server list on this phone? (No local edits found.)";
+  if (!confirm(msg)) return;
+  clearLocalOverrides();
+  show();
+  alert("Reloaded from server list. Seed statuses should show now.");
+};
 
 $("form").photo.addEventListener("change", () => {
   const file = $("form").photo.files[0];
