@@ -90,6 +90,22 @@
   article.ws-border-blue, .card.ws-border-blue { border-left-color:#5a9fd4 !important; border-left-width:5px; }
   .status-filter { margin:8px 0 0; display:none; }
   .status-filter.on { display:block; }
+
+  /* Lot 9 Inop — distinct from workStatus colors */
+  .lot-head-9inop, .lot-head.lot-head-9inop { border-left-color:#8a5050; background:#1e1818; }
+  .inop-badge {
+    display:inline-block; font-size:11px; font-weight:700; letter-spacing:0.05em;
+    padding:3px 9px; border-radius:99px; margin:6px 6px 0 0;
+    background:#4a3030; color:#e8c8c8; border:1px solid #8a5555;
+  }
+  article.inop, .card.inop { background:#1a1618; }
+  #inopWrap { display:none; margin-top:4px; }
+  #inopWrap.on { display:block; }
+  #inopWrap label.inop-check {
+    display:flex; align-items:center; gap:8px; color:var(--ink); font-size:14px; margin:4px 0;
+    cursor:pointer;
+  }
+  #inopWrap input[type="checkbox"] { width:auto; accent-color:#8a5050; }
 </style>
 </head>
 <body>
@@ -100,6 +116,7 @@
   <div class="tabs" id="tabs">
     <button type="button" class="on" data-lot="all">All</button>
     <button type="button" data-lot="9">Lot 9</button>
+    <button type="button" data-lot="9inop">Lot 9 Inop</button>
     <button type="button" data-lot="12">Lot 12</button>
     <button type="button" data-lot="1">Lot 1</button>
     <button type="button" data-lot="AAA">AAA</button>
@@ -196,6 +213,9 @@
     <strong id="dlgTitle">Car</strong>
     <label>Lot</label>
     <select name="lot"><option value="9">Lot 9</option><option value="12">Lot 12</option><option value="1">Lot 1</option><option value="AAA">AAA</option></select>
+    <div id="inopWrap">
+      <label class="inop-check"><input type="checkbox" name="inop" id="inopCheck"> Inop unit</label>
+    </div>
     <label>Stock #</label>
     <input name="stock" required>
     <label>Year / make / model</label>
@@ -252,10 +272,10 @@
 (function () {
 "use strict";
 
-const SEED = [{"stock":"48601-ARB","lot":"12","year":"2021","make":"Chevrolet","model":"Malibu","color":"Grey","vin":"033920","miles":123242,"purchased":"2026-01-07","price":0,"issues":"trans","status":"On lot","flag":"","workStatus":"Needs motor or transmission"},{"stock":"51340","lot":"12","year":"2021","make":"Kia","model":"Forte","color":"Silver","vin":"305705","miles":104367,"purchased":"2026-07-03","price":15995,"issues":"needs checking","status":"On lot","flag":"","workStatus":"Waiting on parts"},{"stock":"51589","lot":"12","year":"2015","make":"Chevrolet","model":"Sonic","color":"Blue","vin":"139822","miles":63855,"purchased":"2026-07-17","price":0,"issues":"trans lines","status":"On lot","flag":"","workStatus":"Needs motor or transmission"},{"stock":"51709","lot":"12","year":"2021","make":"Kia","model":"Forte","color":"Grey","vin":"291060","miles":126888,"purchased":"2026-07-21","price":15995,"issues":"checking","status":"On lot","flag":"","workStatus":"Ready to come into shop"},{"stock":"51916","lot":"12","year":"2018","make":"Nissan","model":"Altima","color":"Red","vin":"267254","miles":110185,"purchased":"2026-08-04","price":0,"issues":"motor?","status":"On lot","flag":"","workStatus":"Waiting on parts"},{"stock":"52084","lot":"12","year":"2009","make":"Mini","model":"Cooper","color":"Blue","vin":"W76657","miles":76063,"purchased":"2026-08-11","price":0,"issues":"hood latch","status":"On lot","flag":"VIN partial printed as W76657","workStatus":"Ready to come into shop"},{"stock":"52413","lot":"12","year":"2014","make":"Chrysler","model":"300","color":"Grey","vin":"202951","miles":59583,"purchased":"2026-08-25","price":0,"issues":"trans","status":"On lot","flag":"","workStatus":"Needs motor or transmission"},{"stock":"52616","lot":"12","year":"2012","make":"Honda","model":"Accord","color":"","vin":"122111","miles":144635,"purchased":"2026-09-04","price":0,"issues":"","status":"On lot","flag":"Color not readable on 10/01 photo","workStatus":""},{"stock":"52617","lot":"12","year":"2015","make":"Ford","model":"Taurus","color":"Grey","vin":"170783","miles":120491,"purchased":"2026-09-04","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"52167","lot":"12","year":"2014","make":"Buick","model":"Enclave","color":"Gold","vin":"188593","miles":104872,"purchased":"2026-09-08","price":0,"issues":"","status":"On lot","flag":"","workStatus":"Ready to come into shop"},{"stock":"52175","lot":"12","year":"2017","make":"Hyundai","model":"Accent","color":"Silver","vin":"289342","miles":109698,"purchased":"2026-09-09","price":0,"issues":"2 tires & wheel","status":"On lot","flag":"","workStatus":"Ready to come into shop"},{"stock":"52757","lot":"12","year":"2010","make":"Honda","model":"CR-V","color":"Silver","vin":"009383","miles":166164,"purchased":"2026-09-09","price":0,"issues":"rust","status":"On lot","flag":"","workStatus":"Needs motor or transmission"},{"stock":"52802","lot":"12","year":"2015","make":"Toyota","model":"Corolla","color":"White","vin":"276785","miles":157367,"purchased":"2026-09-16","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"52197","lot":"12","year":"2014","make":"Chevrolet","model":"Malibu","color":"Gold","vin":"303874","miles":168888,"purchased":"2026-09-17","price":0,"issues":"","status":"On lot","flag":"","workStatus":"In the shop"},{"stock":"52825","lot":"12","year":"2015","make":"Cadillac","model":"SRX","color":"White","vin":"631534","miles":102007,"purchased":"2026-09-18","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"52205","lot":"12","year":"2018","make":"Ram","model":"1500","color":"White","vin":"114328","miles":140267,"purchased":"2026-09-21","price":0,"issues":"tires","status":"On lot","flag":"","workStatus":"Ready to come into shop"},{"stock":"52206","lot":"12","year":"2017","make":"Nissan","model":"Sentra","color":"White","vin":"294079","miles":116250,"purchased":"2026-09-21","price":0,"issues":"tires","status":"On lot","flag":"","workStatus":"Ready to come into shop"},{"stock":"52844","lot":"12","year":"2010","make":"Lincoln","model":"MKS","color":"Blue","vin":"613019","miles":106295,"purchased":"2026-09-22","price":0,"issues":"","status":"On lot","flag":"","workStatus":"Ready for lot"},{"stock":"52841","lot":"12","year":"2016","make":"Ford","model":"Fusion","color":"Grey","vin":"205849","miles":106413,"purchased":"2026-09-22","price":0,"issues":"mirror","status":"On lot","flag":"","workStatus":"Ready to come into shop"},{"stock":"52209","lot":"12","year":"2018","make":"Nissan","model":"Altima","color":"Grey","vin":"162680","miles":107966,"purchased":"2026-09-28","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"52210","lot":"12","year":"2015","make":"Chevrolet","model":"Malibu","color":"Gold","vin":"345988","miles":144500,"purchased":"2026-09-28","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"52212","lot":"12","year":"2017","make":"Chevrolet","model":"Equinox","color":"Blue","vin":"520653","miles":127431,"purchased":"2026-09-28","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"52214","lot":"12","year":"2018","make":"Jeep","model":"Renegade","color":"Grey","vin":"133041","miles":129184,"purchased":"2026-09-28","price":0,"issues":"","status":"On lot","flag":"VIN last-6 may be 133041 or J33041","workStatus":""},{"stock":"52901","lot":"12","year":"2014","make":"Lincoln","model":"MKZ","color":"Gold","vin":"829942","miles":138238,"purchased":"2026-09-29","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"52216","lot":"12","year":"2017","make":"Kia","model":"Sorento","color":"Grey","vin":"292675","miles":192100,"purchased":"2026-09-29","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"52217","lot":"12","year":"2008","make":"Lincoln","model":"MKZ","color":"Grey","vin":"629386","miles":58703,"purchased":"2026-09-29","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"52218","lot":"12","year":"2012","make":"Toyota","model":"Camry","color":"Silver","vin":"101937","miles":135678,"purchased":"2026-09-29","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"52219","lot":"12","year":"2019","make":"Dodge","model":"Journey","color":"Red","vin":"805183","miles":166593,"purchased":"2026-09-29","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"52220","lot":"12","year":"2020","make":"Hyundai","model":"Elantra","color":"Grey","vin":"573317","miles":81930,"purchased":"2026-09-29","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"52221","lot":"12","year":"2010","make":"Chevrolet","model":"Camaro","color":"Black","vin":"172408","miles":118081,"purchased":"2026-09-29","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"49945","lot":"9","year":"2019","make":"Nissan","model":"Altima","color":"Silver","vin":"157714","miles":121601,"purchased":"2026-06-03","price":0,"issues":"","status":"On lot","flag":"Printout showed 120 days beside this stock","workStatus":""},{"stock":"50386-I","lot":"9","year":"2015","make":"Kia","model":"Sorento","color":"Silver","vin":"636211","miles":113199,"purchased":"2026-06-08","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"50401","lot":"9","year":"2020","make":"Nissan","model":"Altima","color":"White","vin":"230076","miles":151718,"purchased":"2026-06-16","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"51210-I","lot":"9","year":"2012","make":"Ford","model":"Fusion","color":"Grey","vin":"147813","miles":114130,"purchased":"2026-07-18","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"51256","lot":"9","year":"2017","make":"Chevrolet","model":"Traverse","color":"","vin":"292243","miles":143386,"purchased":"2026-08-07","price":0,"issues":"","status":"On lot","flag":"Color not readable on 10/01 photo","workStatus":""},{"stock":"51266","lot":"9","year":"2020","make":"Hyundai","model":"Elantra","color":"Black","vin":"570682","miles":99609,"purchased":"2026-08-11","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"52126","lot":"9","year":"2019","make":"Nissan","model":"Altima","color":"","vin":"246731","miles":168991,"purchased":"2026-08-18","price":0,"issues":"","status":"On lot","flag":"Color not readable on 10/01 photo","workStatus":""},{"stock":"52145","lot":"9","year":"2016","make":"Buick","model":"Enclave","color":"White","vin":"251039","miles":135787,"purchased":"2026-08-24","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"52140","lot":"9","year":"2017","make":"Mitsubishi","model":"Mirage","color":"Grey","vin":"008682","miles":122463,"purchased":"2026-08-24","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"52171","lot":"9","year":"2016","make":"Mazda","model":"Mazda3","color":"Black","vin":"275241","miles":143585,"purchased":"2026-09-08","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"52185-I","lot":"9","year":"2015","make":"Chevrolet","model":"Malibu","color":"Silver","vin":"233668","miles":111465,"purchased":"2026-09-10","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"52189-I","lot":"9","year":"2019","make":"Dodge","model":"Journey","color":"Silver","vin":"803406","miles":171311,"purchased":"2026-09-11","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"52187","lot":"9","year":"2015","make":"Nissan","model":"Altima","color":"Grey","vin":"478351","miles":193852,"purchased":"2026-09-11","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"52192","lot":"9","year":"2015","make":"Dodge","model":"Journey","color":"Grey","vin":"944642","miles":174606,"purchased":"2026-09-14","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"52198","lot":"9","year":"2015","make":"Jeep","model":"Grand Cherokee","color":"White","vin":"C03594","miles":170530,"purchased":"2026-09-17","price":0,"issues":"","status":"On lot","flag":"VIN partial printed oddly as C03594 \u2014 verify","workStatus":""},{"stock":"52202","lot":"9","year":"2013","make":"Ford","model":"Explorer","color":"White","vin":"382784","miles":140895,"purchased":"2026-09-21","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"52204-I","lot":"9","year":"2016","make":"Dodge","model":"Grand Caravan","color":"Black","vin":"120245","miles":144804,"purchased":"2026-09-21","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"52208","lot":"9","year":"2015","make":"Chevrolet","model":"Equinox","color":"","vin":"613604","miles":126461,"purchased":"2026-09-28","price":0,"issues":"","status":"On lot","flag":"Color not readable on 10/01 photo","workStatus":""},{"stock":"52213","lot":"9","year":"2017","make":"Dodge","model":"Journey","color":"Grey","vin":"516597","miles":134755,"purchased":"2026-09-28","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"52211-I","lot":"9","year":"2015","make":"Hyundai","model":"Sonata","color":"Red","vin":"241021","miles":151603,"purchased":"2026-09-28","price":0,"issues":"","status":"On lot","flag":"","workStatus":""},{"stock":"52200","lot":"9","year":"2012","make":"Jeep","model":"Grand Cherokee","color":"","vin":"305496","miles":198150,"purchased":"2026-09-29","price":0,"issues":"","status":"On lot","flag":"Color not readable on 10/01 photo","workStatus":""},{"stock":"52902-I","lot":"9","year":"2015","make":"Dodge","model":"Charger","color":"","vin":"500929","miles":149741,"purchased":"2026-09-30","price":0,"issues":"","status":"On lot","flag":"Color not readable on 10/01 photo","workStatus":""},{"stock":"51249","lot":"AAA","year":"2014","make":"Chevrolet","model":"Malibu","color":"Silver","vin":"155707","miles":107265,"purchased":"2026-08-05","price":0,"issues":"","status":"On lot","flag":"On 9/25 Lot 9 sheet; not on 10/01 Lot 9 seed","workStatus":""},{"stock":"52136","lot":"AAA","year":"2020","make":"Kia","model":"Forte","color":"Grey","vin":"223771","miles":122899,"purchased":"2026-08-21","price":0,"issues":"","status":"On lot","flag":"On 9/25 Lot 9 sheet; not on 10/01 Lot 9 seed","workStatus":""},{"stock":"52177","lot":"AAA","year":"2006","make":"Nissan","model":"Xterra","color":"Grey","vin":"528837","miles":112008,"purchased":"2026-09-09","price":0,"issues":"","status":"On lot","flag":"Circled on 9/25 Lot 9 sheet; not on 10/01 Lot 9 seed","workStatus":""},{"stock":"52184","lot":"AAA","year":"2017","make":"Ford","model":"Fusion","color":"Black","vin":"352949","miles":90057,"purchased":"2026-09-10","price":0,"issues":"","status":"On lot","flag":"On 9/25 Lot 9 sheet; not on 10/01 Lot 9 seed","workStatus":""},{"stock":"52196","lot":"AAA","year":"2014","make":"Chrysler","model":"300","color":"White","vin":"289270","miles":168355,"purchased":"2026-09-17","price":0,"issues":"","status":"On lot","flag":"On 9/25 Lot 9 sheet; not on 10/01 Lot 9 seed","workStatus":""},{"stock":"52199","lot":"AAA","year":"2017","make":"Chevrolet","model":"Equinox","color":"Red","vin":"152440","miles":137795,"purchased":"2026-09-17","price":0,"issues":"","status":"On lot","flag":"On 9/25 Lot 9 sheet; not on 10/01 Lot 9 seed","workStatus":""},{"stock":"52207","lot":"AAA","year":"2014","make":"Nissan","model":"Altima","color":"Black","vin":"138066","miles":126664,"purchased":"2026-09-23","price":0,"issues":"","status":"On lot","flag":"On 9/25 Lot 9 sheet; not on 10/01 Lot 9 seed","workStatus":""}];
+const SEED = [{"stock":"48601-ARB","lot":"12","year":"2021","make":"Chevrolet","model":"Malibu","color":"Grey","vin":"033920","miles":123242,"purchased":"2026-01-07","price":0,"issues":"trans","status":"On lot","flag":"","workStatus":"Needs motor or transmission","inop":false},{"stock":"51340","lot":"12","year":"2021","make":"Kia","model":"Forte","color":"Silver","vin":"305705","miles":104367,"purchased":"2026-07-03","price":15995,"issues":"needs checking","status":"On lot","flag":"","workStatus":"Waiting on parts","inop":false},{"stock":"51589","lot":"12","year":"2015","make":"Chevrolet","model":"Sonic","color":"Blue","vin":"139822","miles":63855,"purchased":"2026-07-17","price":0,"issues":"trans lines","status":"On lot","flag":"","workStatus":"Needs motor or transmission","inop":false},{"stock":"51709","lot":"12","year":"2021","make":"Kia","model":"Forte","color":"Grey","vin":"291060","miles":126888,"purchased":"2026-07-21","price":15995,"issues":"checking","status":"On lot","flag":"","workStatus":"Ready to come into shop","inop":false},{"stock":"51916","lot":"12","year":"2018","make":"Nissan","model":"Altima","color":"Red","vin":"267254","miles":110185,"purchased":"2026-08-04","price":0,"issues":"motor?","status":"On lot","flag":"","workStatus":"Waiting on parts","inop":false},{"stock":"52084","lot":"12","year":"2009","make":"Mini","model":"Cooper","color":"Blue","vin":"W76657","miles":76063,"purchased":"2026-08-11","price":0,"issues":"hood latch","status":"On lot","flag":"VIN partial printed as W76657","workStatus":"Ready to come into shop","inop":false},{"stock":"52413","lot":"12","year":"2014","make":"Chrysler","model":"300","color":"Grey","vin":"202951","miles":59583,"purchased":"2026-08-25","price":0,"issues":"trans","status":"On lot","flag":"","workStatus":"Needs motor or transmission","inop":false},{"stock":"52616","lot":"12","year":"2012","make":"Honda","model":"Accord","color":"","vin":"122111","miles":144635,"purchased":"2026-09-04","price":0,"issues":"","status":"On lot","flag":"Color not readable on 10/01 photo","workStatus":"","inop":false},{"stock":"52617","lot":"12","year":"2015","make":"Ford","model":"Taurus","color":"Grey","vin":"170783","miles":120491,"purchased":"2026-09-04","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"52167","lot":"12","year":"2014","make":"Buick","model":"Enclave","color":"Gold","vin":"188593","miles":104872,"purchased":"2026-09-08","price":0,"issues":"","status":"On lot","flag":"","workStatus":"Ready to come into shop","inop":false},{"stock":"52175","lot":"12","year":"2017","make":"Hyundai","model":"Accent","color":"Silver","vin":"289342","miles":109698,"purchased":"2026-09-09","price":0,"issues":"2 tires & wheel","status":"On lot","flag":"","workStatus":"Ready to come into shop","inop":false},{"stock":"52757","lot":"12","year":"2010","make":"Honda","model":"CR-V","color":"Silver","vin":"009383","miles":166164,"purchased":"2026-09-09","price":0,"issues":"rust","status":"On lot","flag":"","workStatus":"Needs motor or transmission","inop":false},{"stock":"52802","lot":"12","year":"2015","make":"Toyota","model":"Corolla","color":"White","vin":"276785","miles":157367,"purchased":"2026-09-16","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"52197","lot":"12","year":"2014","make":"Chevrolet","model":"Malibu","color":"Gold","vin":"303874","miles":168888,"purchased":"2026-09-17","price":0,"issues":"","status":"On lot","flag":"","workStatus":"In the shop","inop":false},{"stock":"52825","lot":"12","year":"2015","make":"Cadillac","model":"SRX","color":"White","vin":"631534","miles":102007,"purchased":"2026-09-18","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"52205","lot":"12","year":"2018","make":"Ram","model":"1500","color":"White","vin":"114328","miles":140267,"purchased":"2026-09-21","price":0,"issues":"tires","status":"On lot","flag":"","workStatus":"Ready to come into shop","inop":false},{"stock":"52206","lot":"12","year":"2017","make":"Nissan","model":"Sentra","color":"White","vin":"294079","miles":116250,"purchased":"2026-09-21","price":0,"issues":"tires","status":"On lot","flag":"","workStatus":"Ready to come into shop","inop":false},{"stock":"52844","lot":"12","year":"2010","make":"Lincoln","model":"MKS","color":"Blue","vin":"613019","miles":106295,"purchased":"2026-09-22","price":0,"issues":"","status":"On lot","flag":"","workStatus":"Ready for lot","inop":false},{"stock":"52841","lot":"12","year":"2016","make":"Ford","model":"Fusion","color":"Grey","vin":"205849","miles":106413,"purchased":"2026-09-22","price":0,"issues":"mirror","status":"On lot","flag":"","workStatus":"Ready to come into shop","inop":false},{"stock":"52209","lot":"12","year":"2018","make":"Nissan","model":"Altima","color":"Grey","vin":"162680","miles":107966,"purchased":"2026-09-28","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"52210","lot":"12","year":"2015","make":"Chevrolet","model":"Malibu","color":"Gold","vin":"345988","miles":144500,"purchased":"2026-09-28","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"52212","lot":"12","year":"2017","make":"Chevrolet","model":"Equinox","color":"Blue","vin":"520653","miles":127431,"purchased":"2026-09-28","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"52214","lot":"12","year":"2018","make":"Jeep","model":"Renegade","color":"Grey","vin":"133041","miles":129184,"purchased":"2026-09-28","price":0,"issues":"","status":"On lot","flag":"VIN last-6 may be 133041 or J33041","workStatus":"","inop":false},{"stock":"52901","lot":"12","year":"2014","make":"Lincoln","model":"MKZ","color":"Gold","vin":"829942","miles":138238,"purchased":"2026-09-29","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"52216","lot":"12","year":"2017","make":"Kia","model":"Sorento","color":"Grey","vin":"292675","miles":192100,"purchased":"2026-09-29","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"52217","lot":"12","year":"2008","make":"Lincoln","model":"MKZ","color":"Grey","vin":"629386","miles":58703,"purchased":"2026-09-29","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"52218","lot":"12","year":"2012","make":"Toyota","model":"Camry","color":"Silver","vin":"101937","miles":135678,"purchased":"2026-09-29","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"52219","lot":"12","year":"2019","make":"Dodge","model":"Journey","color":"Red","vin":"805183","miles":166593,"purchased":"2026-09-29","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"52220","lot":"12","year":"2020","make":"Hyundai","model":"Elantra","color":"Grey","vin":"573317","miles":81930,"purchased":"2026-09-29","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"52221","lot":"12","year":"2010","make":"Chevrolet","model":"Camaro","color":"Black","vin":"172408","miles":118081,"purchased":"2026-09-29","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"49945","lot":"9","year":"2019","make":"Nissan","model":"Altima","color":"Silver","vin":"157714","miles":121601,"purchased":"2026-06-03","price":0,"issues":"","status":"On lot","flag":"Printout showed 120 days beside this stock","workStatus":"","inop":false},{"stock":"50386-I","lot":"9","year":"2015","make":"Kia","model":"Sorento","color":"Silver","vin":"636211","miles":113199,"purchased":"2026-06-08","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"50401","lot":"9","year":"2020","make":"Nissan","model":"Altima","color":"White","vin":"230076","miles":151718,"purchased":"2026-06-16","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"51210-I","lot":"9","year":"2012","make":"Ford","model":"Fusion","color":"Grey","vin":"147813","miles":114130,"purchased":"2026-07-18","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"51256","lot":"9","year":"2017","make":"Chevrolet","model":"Traverse","color":"","vin":"292243","miles":143386,"purchased":"2026-08-07","price":0,"issues":"","status":"On lot","flag":"Color not readable on 10/01 photo","workStatus":"","inop":false},{"stock":"51266","lot":"9","year":"2020","make":"Hyundai","model":"Elantra","color":"Black","vin":"570682","miles":99609,"purchased":"2026-08-11","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"52126","lot":"9","year":"2019","make":"Nissan","model":"Altima","color":"","vin":"246731","miles":168991,"purchased":"2026-08-18","price":0,"issues":"","status":"On lot","flag":"Color not readable on 10/01 photo","workStatus":"","inop":false},{"stock":"52145","lot":"9","year":"2016","make":"Buick","model":"Enclave","color":"White","vin":"251039","miles":135787,"purchased":"2026-08-24","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"52140","lot":"9","year":"2017","make":"Mitsubishi","model":"Mirage","color":"Grey","vin":"008682","miles":122463,"purchased":"2026-08-24","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"52171","lot":"9","year":"2016","make":"Mazda","model":"Mazda3","color":"Black","vin":"275241","miles":143585,"purchased":"2026-09-08","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"52185-I","lot":"9","year":"2015","make":"Chevrolet","model":"Malibu","color":"Silver","vin":"233668","miles":111465,"purchased":"2026-09-10","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"52189-I","lot":"9","year":"2019","make":"Dodge","model":"Journey","color":"Silver","vin":"803406","miles":171311,"purchased":"2026-09-11","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"52187","lot":"9","year":"2015","make":"Nissan","model":"Altima","color":"Grey","vin":"478351","miles":193852,"purchased":"2026-09-11","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"52192","lot":"9","year":"2015","make":"Dodge","model":"Journey","color":"Grey","vin":"944642","miles":174606,"purchased":"2026-09-14","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"52198","lot":"9","year":"2015","make":"Jeep","model":"Grand Cherokee","color":"White","vin":"C03594","miles":170530,"purchased":"2026-09-17","price":0,"issues":"","status":"On lot","flag":"VIN partial printed oddly as C03594 \u2014 verify","workStatus":"","inop":false},{"stock":"52202","lot":"9","year":"2013","make":"Ford","model":"Explorer","color":"White","vin":"382784","miles":140895,"purchased":"2026-09-21","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"52204-I","lot":"9","year":"2016","make":"Dodge","model":"Grand Caravan","color":"Black","vin":"120245","miles":144804,"purchased":"2026-09-21","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"52208","lot":"9","year":"2015","make":"Chevrolet","model":"Equinox","color":"","vin":"613604","miles":126461,"purchased":"2026-09-28","price":0,"issues":"","status":"On lot","flag":"Color not readable on 10/01 photo","workStatus":"","inop":false},{"stock":"52213","lot":"9","year":"2017","make":"Dodge","model":"Journey","color":"Grey","vin":"516597","miles":134755,"purchased":"2026-09-28","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"52211-I","lot":"9","year":"2015","make":"Hyundai","model":"Sonata","color":"Red","vin":"241021","miles":151603,"purchased":"2026-09-28","price":0,"issues":"","status":"On lot","flag":"","workStatus":"","inop":false},{"stock":"52200","lot":"9","year":"2012","make":"Jeep","model":"Grand Cherokee","color":"","vin":"305496","miles":198150,"purchased":"2026-09-29","price":0,"issues":"","status":"On lot","flag":"Color not readable on 10/01 photo","workStatus":"","inop":false},{"stock":"52902-I","lot":"9","year":"2015","make":"Dodge","model":"Charger","color":"","vin":"500929","miles":149741,"purchased":"2026-09-30","price":0,"issues":"","status":"On lot","flag":"Color not readable on 10/01 photo","workStatus":"","inop":false},{"stock":"51249","lot":"AAA","year":"2014","make":"Chevrolet","model":"Malibu","color":"Silver","vin":"155707","miles":107265,"purchased":"2026-08-05","price":0,"issues":"","status":"On lot","flag":"On 9/25 Lot 9 sheet; not on 10/01 Lot 9 seed","workStatus":"","inop":false},{"stock":"52136","lot":"AAA","year":"2020","make":"Kia","model":"Forte","color":"Grey","vin":"223771","miles":122899,"purchased":"2026-08-21","price":0,"issues":"","status":"On lot","flag":"On 9/25 Lot 9 sheet; not on 10/01 Lot 9 seed","workStatus":"","inop":false},{"stock":"52177","lot":"AAA","year":"2006","make":"Nissan","model":"Xterra","color":"Grey","vin":"528837","miles":112008,"purchased":"2026-09-09","price":0,"issues":"","status":"On lot","flag":"Circled on 9/25 Lot 9 sheet; not on 10/01 Lot 9 seed","workStatus":"","inop":false},{"stock":"52184","lot":"AAA","year":"2017","make":"Ford","model":"Fusion","color":"Black","vin":"352949","miles":90057,"purchased":"2026-09-10","price":0,"issues":"","status":"On lot","flag":"On 9/25 Lot 9 sheet; not on 10/01 Lot 9 seed","workStatus":"","inop":false},{"stock":"52196","lot":"AAA","year":"2014","make":"Chrysler","model":"300","color":"White","vin":"289270","miles":168355,"purchased":"2026-09-17","price":0,"issues":"","status":"On lot","flag":"On 9/25 Lot 9 sheet; not on 10/01 Lot 9 seed","workStatus":"","inop":false},{"stock":"52199","lot":"AAA","year":"2017","make":"Chevrolet","model":"Equinox","color":"Red","vin":"152440","miles":137795,"purchased":"2026-09-17","price":0,"issues":"","status":"On lot","flag":"On 9/25 Lot 9 sheet; not on 10/01 Lot 9 seed","workStatus":"","inop":false},{"stock":"52207","lot":"AAA","year":"2014","make":"Nissan","model":"Altima","color":"Black","vin":"138066","miles":126664,"purchased":"2026-09-23","price":0,"issues":"","status":"On lot","flag":"On 9/25 Lot 9 sheet; not on 10/01 Lot 9 seed","workStatus":"","inop":false}];
 const KEY = "davids-lots-v2";
 const OLD_KEY = "davids-lots-v1";
-const TRACKED = ["lot","year","make","model","color","vin","miles","purchased","price","issues","status","workStatus","flag","photo"];
+const TRACKED = ["lot","year","make","model","color","vin","miles","purchased","price","issues","status","workStatus","flag","photo","inop"];
 const WORK_STATUS = {
   "12": [
     { value: "Ready for lot", color: "green" },
@@ -308,6 +328,35 @@ function lotClass(lot) {
   if (lot === "1") return "l1";
   if (lot === "AAA") return "laaa";
   return "l9";
+}
+
+function isInop(c) {
+  return !!(c && c.inop);
+}
+
+/** Move destinations: Lot 9 / Lot 9 Inop share lot "9" but differ by inop flag. */
+const MOVE_DESTS = [
+  { value: "9", label: "Lot 9", lot: "9", inop: false },
+  { value: "9inop", label: "Lot 9 Inop", lot: "9", inop: true },
+  { value: "12", label: "Lot 12", lot: "12", inop: false },
+  { value: "1", label: "Lot 1", lot: "1", inop: false },
+  { value: "AAA", label: "AAA", lot: "AAA", inop: false }
+];
+
+function moveDestKey(c) {
+  if (normLot(c.lot) === "9" && isInop(c)) return "9inop";
+  return normLot(c.lot);
+}
+
+function syncInopWrap(lot) {
+  const wrap = $("inopWrap");
+  if (!wrap) return;
+  if (String(lot) === "9") wrap.classList.add("on");
+  else {
+    wrap.classList.remove("on");
+    const chk = $("inopCheck");
+    if (chk) chk.checked = false;
+  }
 }
 
 function lotRank(lot) {
@@ -365,8 +414,17 @@ function diffAgainstSeed(car, seed, opts) {
   if (!seed) return deepClone(car);
   const o = {};
   for (const k of TRACKED) {
-    const a = car[k] ?? "";
-    const b = seed[k] ?? "";
+    let a = car[k];
+    let b = seed[k];
+    if (k === "inop") {
+      a = !!a;
+      b = !!b;
+      if (a === b) continue;
+      o[k] = a;
+      continue;
+    }
+    a = a ?? "";
+    b = b ?? "";
     if (String(a) === String(b)) continue;
     if (prefer && SEED_PREFERS_IF_LOCAL_EMPTY.has(k) && isEmptyVal(a) && !isEmptyVal(b)) {
       continue; // keep SEED
@@ -519,6 +577,9 @@ function mergeCars() {
     if (c.workStatus == null) c.workStatus = "";
     // Keep holding/seed lots visible even if a stale override blanked or mis-cased lot
     c.lot = normLot(c.lot);
+    // Inop only applies on Lot 9; coerce boolean and clear off Lot 9
+    if (c.lot !== "9") c.inop = false;
+    else c.inop = !!c.inop;
   }
   return out;
 }
@@ -577,11 +638,14 @@ function filteredList(cars, q) {
       if (statusFilterValue && c.workStatus !== statusFilterValue) return false;
       return matches(c, tokens).ok;
     }
-    if (filter === "9" || filter === "12" || filter === "1" || filter === "AAA") {
+    if (filter === "9inop") {
+      if (normLot(c.lot) !== "9" || !isInop(c)) return false;
+    } else if (filter === "9" || filter === "12" || filter === "1" || filter === "AAA") {
       // Location tabs: lot only (do NOT also require status === "On lot")
+      // Lot 9 tab includes inop units (split into sub-sections in render)
       if (normLot(c.lot) !== filter) return false;
     }
-    // Spec: All | Lot 9 | Lot 12 | Lot 1 | AAA | Issues | Status
+    // Spec: All | Lot 9 | Lot 9 Inop | Lot 12 | Lot 1 | AAA | Issues | Status
     return matches(c, tokens).ok;
   });
   list = list.map(c => ({ c, exact: matches(c, tokens).exact }));
@@ -603,20 +667,22 @@ function cardHTML(c) {
   const ws = c.workStatus || "";
   const wsColor = workStatusColor(ws);
   const wsBorder = wsColor ? ` ws-border-${wsColor}` : "";
+  const inopCls = isInop(c) ? " inop" : "";
   const color = c.color ? " · " + esc(c.color) : "";
   const mi = c.miles ? Number(c.miles).toLocaleString() + " mi · " : "";
   const d = days(c.purchased);
   const dayStr = d !== "" ? " · " + d + " days" : "";
   const purchased = c.purchased || "no purchase date";
+  const inopBadge = isInop(c) ? `<div class="inop-badge">INOP</div>` : "";
   const wsBadge = ws
     ? `<div class="ws-badge ws-${wsColor}">${esc(ws)}</div>`
     : "";
-  return `<article class="card ${lotCls}${has}${wsBorder}" data-stock="${esc(c.stock)}">
+  return `<article class="card ${lotCls}${has}${wsBorder}${inopCls}" data-stock="${esc(c.stock)}">
     <div class="top"><span class="stock">${esc(c.stock)}</span><span class="lot ${lotCls}">${esc(lotLabel(c.lot))}</span></div>
     <div class="meta">${esc(c.year)} ${esc(c.make)} ${esc(c.model)}${color}</div>
     <div class="meta">${mi}${esc(purchased)}${dayStr}</div>
     <div class="meta vin">VIN (last 6): ${esc(c.vin || "—")}</div>
-    ${wsBadge}
+    ${inopBadge}${wsBadge}
     ${c.issues ? `<div class="issue">${esc(c.issues)}</div>` : ""}
     ${c.flag ? `<div class="warn">${esc(c.flag)}</div>` : ""}
     <div class="actions">
@@ -630,18 +696,23 @@ function renderSections(list, q) {
   const tokens = tokensOf(q);
   const searching = tokens.length > 0;
   if (filter === "all") {
-    const g9 = list.filter(c => normLot(c.lot) === "9");
+    const g9all = list.filter(c => normLot(c.lot) === "9");
+    const g9 = g9all.filter(c => !isInop(c));
+    const g9inop = g9all.filter(c => isInop(c));
     const g12 = list.filter(c => normLot(c.lot) === "12");
     const g1 = list.filter(c => normLot(c.lot) === "1");
     const gAAA = list.filter(c => normLot(c.lot) === "AAA");
     let html = "";
     if (searching) {
-      $("matchCounts").textContent = `Matches: Lot 9 · ${g9.length}, Lot 12 · ${g12.length}, Lot 1 · ${g1.length}, AAA · ${gAAA.length} (total ${list.length})`;
+      $("matchCounts").textContent = `Matches: Lot 9 · ${g9all.length} (inop ${g9inop.length}), Lot 12 · ${g12.length}, Lot 1 · ${g1.length}, AAA · ${gAAA.length} (total ${list.length})`;
     } else {
       $("matchCounts").textContent = "";
     }
     html += `<section class="lot-section" id="live-lot-9"><h2 class="lot-head lot-head-9">Lot 9 · ${g9.length} cars</h2>`;
     html += g9.length ? g9.map(cardHTML).join("") : `<p class="sub">No cars on Lot 9 match.</p>`;
+    html += `</section>`;
+    html += `<section class="lot-section" id="live-lot-9inop"><h2 class="lot-head lot-head-9inop">Lot 9 Inop · ${g9inop.length} cars</h2>`;
+    html += g9inop.length ? g9inop.map(cardHTML).join("") : `<p class="sub">No inop units on Lot 9.</p>`;
     html += `</section>`;
     html += `<section class="lot-section" id="live-lot-12"><h2 class="lot-head lot-head-12">Lot 12 · ${g12.length} cars</h2>`;
     html += g12.length ? g12.map(cardHTML).join("") : `<p class="sub">No cars on Lot 12 match.</p>`;
@@ -657,23 +728,46 @@ function renderSections(list, q) {
   }
   if (searching) {
     const n9 = list.filter(c => normLot(c.lot) === "9").length;
+    const n9inop = list.filter(c => normLot(c.lot) === "9" && isInop(c)).length;
     const n12 = list.filter(c => normLot(c.lot) === "12").length;
     const n1 = list.filter(c => normLot(c.lot) === "1").length;
     const nAAA = list.filter(c => normLot(c.lot) === "AAA").length;
-    $("matchCounts").textContent = `Matches: Lot 9 · ${n9}, Lot 12 · ${n12}, Lot 1 · ${n1}, AAA · ${nAAA} (showing ${list.length})`;
+    $("matchCounts").textContent = `Matches: Lot 9 · ${n9} (inop ${n9inop}), Lot 12 · ${n12}, Lot 1 · ${n1}, AAA · ${nAAA} (showing ${list.length})`;
   } else {
     $("matchCounts").textContent = "";
   }
   if (!list.length) return `<p class="sub">No cars match.</p>`;
+  // Lot 9 tab: two sub-sections (regular then inop)
+  if (filter === "9") {
+    const g9 = list.filter(c => !isInop(c)).sort(sortWithin);
+    const g9inop = list.filter(c => isInop(c)).sort(sortWithin);
+    let html = "";
+    html += `<section class="lot-section" id="live-lot-9"><h2 class="lot-head lot-head-9">Lot 9 · ${g9.length} cars</h2>`;
+    html += g9.length ? g9.map(cardHTML).join("") : `<p class="sub">No operable cars on Lot 9.</p>`;
+    html += `</section>`;
+    html += `<section class="lot-section" id="live-lot-9inop"><h2 class="lot-head lot-head-9inop">Lot 9 Inop · ${g9inop.length} cars</h2>`;
+    html += g9inop.length ? g9inop.map(cardHTML).join("") : `<p class="sub">No inop units on Lot 9.</p>`;
+    html += `</section>`;
+    return html;
+  }
+  // Lot 9 Inop tab: flat list of inop only
+  if (filter === "9inop") {
+    return `<section class="lot-section" id="live-lot-9inop"><h2 class="lot-head lot-head-9inop">Lot 9 Inop · ${list.length} cars</h2>${list.map(cardHTML).join("")}</section>`;
+  }
   // single lot or issues — still group by lot if mixed (issues can span locations)
   if (filter === "issues" || filter === "status") {
-    const g9 = list.filter(c => normLot(c.lot) === "9").sort(sortWithin);
+    const g9all = list.filter(c => normLot(c.lot) === "9").sort(sortWithin);
+    const g9 = g9all.filter(c => !isInop(c));
+    const g9inop = g9all.filter(c => isInop(c));
     const g12 = list.filter(c => normLot(c.lot) === "12").sort(sortWithin);
     const g1 = list.filter(c => normLot(c.lot) === "1").sort(sortWithin);
     const gAAA = list.filter(c => normLot(c.lot) === "AAA").sort(sortWithin);
     let html = "";
     if (g9.length) {
       html += `<section class="lot-section"><h2 class="lot-head lot-head-9">Lot 9 · ${g9.length} cars</h2>${g9.map(cardHTML).join("")}</section>`;
+    }
+    if (g9inop.length) {
+      html += `<section class="lot-section"><h2 class="lot-head lot-head-9inop">Lot 9 Inop · ${g9inop.length} cars</h2>${g9inop.map(cardHTML).join("")}</section>`;
     }
     if (g12.length) {
       html += `<section class="lot-section"><h2 class="lot-head lot-head-12">Lot 12 · ${g12.length} cars</h2>${g12.map(cardHTML).join("")}</section>`;
@@ -726,7 +820,7 @@ function fillWorkStatusOptions(lot, selected) {
 
 function openEdit(stock) {
   editing = stock || null;
-  const c = stock ? findMerged(stock) : { lot: (filter === "12" || filter === "1" || filter === "AAA") ? filter : "9", status: "On lot", workStatus: "" };
+  const c = stock ? findMerged(stock) : { lot: (filter === "12" || filter === "1" || filter === "AAA") ? filter : "9", status: "On lot", workStatus: "", inop: filter === "9inop" };
   if (stock && !c) return;
   $("dlgTitle").textContent = stock || "New car";
   const f = $("form");
@@ -740,6 +834,8 @@ function openEdit(stock) {
   f.vin.value = c.vin || "";
   f.issues.value = c.issues || "";
   fillWorkStatusOptions(c.lot || "9", c.workStatus || "");
+  syncInopWrap(c.lot || "9");
+  $("inopCheck").checked = (String(c.lot || "9") === "9") && isInop(c);
   $("preview").style.display = c.photo ? "block" : "none";
   $("preview").src = c.photo || "";
   delete $("preview").dataset.pending;
@@ -771,12 +867,14 @@ function changesText() {
     if (!seed) {
       lines.push(`ADDED: ${lotLabel(c.lot)} stock ${c.stock} ${c.year} ${c.make} ${c.model}` +
         (c.color ? ` ${c.color}` : "") +
+        (isInop(c) ? " — INOP" : "") +
         (c.issues ? ` — issues: ${c.issues}` : "") +
         (c.workStatus ? ` — workStatus: ${c.workStatus}` : ""));
       continue;
     }
     const changes = [];
     if (String(c.lot) !== String(seed.lot)) changes.push(`lot ${seed.lot}→${c.lot}`);
+    if (!!c.inop !== !!seed.inop) changes.push(`inop ${!!seed.inop}→${!!c.inop}`);
     if (String(c.workStatus || "") !== String(seed.workStatus || "")) changes.push(`workStatus ${seed.workStatus || "(none)"}→${c.workStatus || "(none)"}`);
     if (String(c.issues || "") !== String(seed.issues || "")) changes.push(`issues: ${c.issues || "(cleared)"}`);
     if (String(c.color || "") !== String(seed.color || "")) changes.push(`color ${seed.color || "(blank)"}→${c.color || "(blank)"}`);
@@ -823,22 +921,25 @@ let movingStock = null;
 function openMove(c) {
   movingStock = c.stock;
   const fromHolding = HOLDING.has(c.lot);
+  const curKey = moveDestKey(c);
+  const curLabel = curKey === "9inop" ? "Lot 9 Inop" : lotLabel(c.lot);
   $("moveMsg").textContent = fromHolding
-    ? `Stock ${c.stock} is at ${lotLabel(c.lot)} (holding). Move back to Lot 9/12 or between Lot 1 and AAA:`
-    : `Stock ${c.stock} is at ${lotLabel(c.lot)}. Leaving Lot 9/12 means Lot 1 or AAA (or swap 9↔12):`;
+    ? `Stock ${c.stock} is at ${curLabel} (holding). Move back to Lot 9/12 or between Lot 1 and AAA:`
+    : `Stock ${c.stock} is at ${curLabel}. Leaving Lot 9/12 means Lot 1 or AAA (or swap 9↔12 / mark Inop):`;
   const sel = $("moveTo");
-  // Destinations: all other locations (9, 12, 1, AAA)
-  sel.innerHTML = LOTS.map(l =>
-    `<option value="${l}"${l === c.lot ? " disabled" : ""}>${lotLabel(l)}${l === c.lot ? " (current)" : ""}${HOLDING.has(l) && !fromHolding ? " — holding" : ""}</option>`
-  ).join("");
-  // Prefer holding destinations when leaving Lot 9/12
+  sel.innerHTML = MOVE_DESTS.map(d => {
+    const isCur = d.value === curKey;
+    const holdingNote = HOLDING.has(d.lot) && !fromHolding ? " — holding" : "";
+    return `<option value="${d.value}"${isCur ? " disabled" : ""}>${d.label}${isCur ? " (current)" : ""}${holdingNote}</option>`;
+  }).join("");
   let firstOther;
   if (!fromHolding) {
-    firstOther = LOTS.find(l => l !== c.lot && HOLDING.has(l)) || LOTS.find(l => l !== c.lot);
+    firstOther = MOVE_DESTS.find(d => d.value !== curKey && HOLDING.has(d.lot))
+      || MOVE_DESTS.find(d => d.value !== curKey);
   } else {
-    firstOther = LOTS.find(l => l !== c.lot);
+    firstOther = MOVE_DESTS.find(d => d.value !== curKey);
   }
-  sel.value = firstOther || c.lot;
+  sel.value = firstOther ? firstOther.value : curKey;
   $("moveDlg").showModal();
 }
 
@@ -848,16 +949,23 @@ $("moveConfirm").onclick = () => {
   if (!movingStock) return;
   const c = findMerged(movingStock);
   if (!c) { $("moveDlg").close(); return; }
-  const next = $("moveTo").value;
-  if (!LOTS.includes(next) || next === c.lot) {
+  const nextKey = $("moveTo").value;
+  const dest = MOVE_DESTS.find(d => d.value === nextKey);
+  const curKey = moveDestKey(c);
+  if (!dest || nextKey === curKey) {
     alert("Pick a different location.");
     return;
   }
-  if (!confirm(`Move stock ${c.stock} from ${lotLabel(c.lot)} to ${lotLabel(next)}?`)) return;
+  if (!confirm(`Move stock ${c.stock} from ${curKey === "9inop" ? "Lot 9 Inop" : lotLabel(c.lot)} to ${dest.label}?`)) return;
   let nextWs = c.workStatus || "";
-  const allowed = (WORK_STATUS[next] || []).map(o => o.value);
+  const allowed = (WORK_STATUS[dest.lot] || []).map(o => o.value);
   if (nextWs && !allowed.includes(nextWs)) nextWs = "";
-  const updated = Object.assign({}, c, { lot: next, workStatus: nextWs, updated: today() });
+  const updated = Object.assign({}, c, {
+    lot: dest.lot,
+    inop: dest.lot === "9" ? !!dest.inop : false,
+    workStatus: nextWs,
+    updated: today()
+  });
   persistCar(updated, !seedByStock()[movingStock]);
   movingStock = null;
   $("moveDlg").close();
@@ -869,7 +977,7 @@ document.querySelectorAll("#tabs button").forEach(b => {
     document.querySelectorAll("#tabs button").forEach(x => x.classList.remove("on"));
     b.classList.add("on");
     const raw = b.getAttribute("data-lot") || "all";
-    filter = (raw === "all" || raw === "issues" || raw === "status") ? raw : (normLot(raw) || raw);
+    filter = (raw === "all" || raw === "issues" || raw === "status" || raw === "9inop") ? raw : (normLot(raw) || raw);
     const wrap = $("statusFilterWrap");
     if (filter === "status") wrap.classList.add("on");
     else wrap.classList.remove("on");
@@ -883,6 +991,7 @@ $("statusFilter").addEventListener("change", () => {
 $("form").lot.addEventListener("change", () => {
   const f = $("form");
   fillWorkStatusOptions(f.lot.value, f.workStatus.value);
+  syncInopWrap(f.lot.value);
 });
 
 $("q").addEventListener("input", show);
@@ -952,6 +1061,8 @@ $("form").onsubmit = (e) => {
   base.issues = String(f.get("issues") || "").trim();
   base.status = "On lot"; // visibility status cannot hide a car; use Move lot to Lot 1 / AAA
   base.workStatus = String(f.get("workStatus") || "").trim();
+  // Inop only on Lot 9 (checkbox); clearing lot away from 9 clears inop
+  base.inop = (base.lot === "9") && !!$("inopCheck").checked;
   // Drop workStatus if not valid for the chosen lot (except empty)
   const allowed = (WORK_STATUS[base.lot] || []).map(o => o.value);
   if (base.workStatus && !allowed.includes(base.workStatus)) base.workStatus = "";
@@ -963,7 +1074,7 @@ $("form").onsubmit = (e) => {
 };
 
 function csv() {
-  const cols = ["stock","lot","year","make","model","color","vin","miles","purchased","price","issues","status","workStatus","updated","flag"];
+  const cols = ["stock","lot","year","make","model","color","vin","miles","purchased","price","issues","status","workStatus","inop","updated","flag"];
   const cars = mergeCars();
   const lines = [cols.join(",")].concat(cars.map(c =>
     cols.map(k => `"${String(c[k] ?? "").replaceAll('"','""')}"`).join(",")

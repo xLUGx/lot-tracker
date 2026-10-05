@@ -90,6 +90,22 @@
   article.ws-border-blue, .card.ws-border-blue { border-left-color:#5a9fd4 !important; border-left-width:5px; }
   .status-filter { margin:8px 0 0; display:none; }
   .status-filter.on { display:block; }
+
+  /* Lot 9 Inop — distinct from workStatus colors */
+  .lot-head-9inop, .lot-head.lot-head-9inop { border-left-color:#8a5050; background:#1e1818; }
+  .inop-badge {
+    display:inline-block; font-size:11px; font-weight:700; letter-spacing:0.05em;
+    padding:3px 9px; border-radius:99px; margin:6px 6px 0 0;
+    background:#4a3030; color:#e8c8c8; border:1px solid #8a5555;
+  }
+  article.inop, .card.inop { background:#1a1618; }
+  #inopWrap { display:none; margin-top:4px; }
+  #inopWrap.on { display:block; }
+  #inopWrap label.inop-check {
+    display:flex; align-items:center; gap:8px; color:var(--ink); font-size:14px; margin:4px 0;
+    cursor:pointer;
+  }
+  #inopWrap input[type="checkbox"] { width:auto; accent-color:#8a5050; }
 </style>
 </head>
 <body>
@@ -100,6 +116,7 @@
   <div class="tabs" id="tabs">
     <button type="button" class="on" data-lot="all">All</button>
     <button type="button" data-lot="9">Lot 9</button>
+    <button type="button" data-lot="9inop">Lot 9 Inop</button>
     <button type="button" data-lot="12">Lot 12</button>
     <button type="button" data-lot="1">Lot 1</button>
     <button type="button" data-lot="AAA">AAA</button>
@@ -140,6 +157,9 @@
     <strong id="dlgTitle">Car</strong>
     <label>Lot</label>
     <select name="lot"><option value="9">Lot 9</option><option value="12">Lot 12</option><option value="1">Lot 1</option><option value="AAA">AAA</option></select>
+    <div id="inopWrap">
+      <label class="inop-check"><input type="checkbox" name="inop" id="inopCheck"> Inop unit</label>
+    </div>
     <label>Stock #</label>
     <input name="stock" required>
     <label>Year / make / model</label>
@@ -199,7 +219,7 @@
 const SEED = /*SEED_JSON*/null/*END_SEED*/;
 const KEY = "davids-lots-v2";
 const OLD_KEY = "davids-lots-v1";
-const TRACKED = ["lot","year","make","model","color","vin","miles","purchased","price","issues","status","workStatus","flag","photo"];
+const TRACKED = ["lot","year","make","model","color","vin","miles","purchased","price","issues","status","workStatus","flag","photo","inop"];
 const WORK_STATUS = {
   "12": [
     { value: "Ready for lot", color: "green" },
@@ -252,6 +272,35 @@ function lotClass(lot) {
   if (lot === "1") return "l1";
   if (lot === "AAA") return "laaa";
   return "l9";
+}
+
+function isInop(c) {
+  return !!(c && c.inop);
+}
+
+/** Move destinations: Lot 9 / Lot 9 Inop share lot "9" but differ by inop flag. */
+const MOVE_DESTS = [
+  { value: "9", label: "Lot 9", lot: "9", inop: false },
+  { value: "9inop", label: "Lot 9 Inop", lot: "9", inop: true },
+  { value: "12", label: "Lot 12", lot: "12", inop: false },
+  { value: "1", label: "Lot 1", lot: "1", inop: false },
+  { value: "AAA", label: "AAA", lot: "AAA", inop: false }
+];
+
+function moveDestKey(c) {
+  if (normLot(c.lot) === "9" && isInop(c)) return "9inop";
+  return normLot(c.lot);
+}
+
+function syncInopWrap(lot) {
+  const wrap = $("inopWrap");
+  if (!wrap) return;
+  if (String(lot) === "9") wrap.classList.add("on");
+  else {
+    wrap.classList.remove("on");
+    const chk = $("inopCheck");
+    if (chk) chk.checked = false;
+  }
 }
 
 function lotRank(lot) {
@@ -309,8 +358,17 @@ function diffAgainstSeed(car, seed, opts) {
   if (!seed) return deepClone(car);
   const o = {};
   for (const k of TRACKED) {
-    const a = car[k] ?? "";
-    const b = seed[k] ?? "";
+    let a = car[k];
+    let b = seed[k];
+    if (k === "inop") {
+      a = !!a;
+      b = !!b;
+      if (a === b) continue;
+      o[k] = a;
+      continue;
+    }
+    a = a ?? "";
+    b = b ?? "";
     if (String(a) === String(b)) continue;
     if (prefer && SEED_PREFERS_IF_LOCAL_EMPTY.has(k) && isEmptyVal(a) && !isEmptyVal(b)) {
       continue; // keep SEED
@@ -463,6 +521,9 @@ function mergeCars() {
     if (c.workStatus == null) c.workStatus = "";
     // Keep holding/seed lots visible even if a stale override blanked or mis-cased lot
     c.lot = normLot(c.lot);
+    // Inop only applies on Lot 9; coerce boolean and clear off Lot 9
+    if (c.lot !== "9") c.inop = false;
+    else c.inop = !!c.inop;
   }
   return out;
 }
@@ -521,11 +582,14 @@ function filteredList(cars, q) {
       if (statusFilterValue && c.workStatus !== statusFilterValue) return false;
       return matches(c, tokens).ok;
     }
-    if (filter === "9" || filter === "12" || filter === "1" || filter === "AAA") {
+    if (filter === "9inop") {
+      if (normLot(c.lot) !== "9" || !isInop(c)) return false;
+    } else if (filter === "9" || filter === "12" || filter === "1" || filter === "AAA") {
       // Location tabs: lot only (do NOT also require status === "On lot")
+      // Lot 9 tab includes inop units (split into sub-sections in render)
       if (normLot(c.lot) !== filter) return false;
     }
-    // Spec: All | Lot 9 | Lot 12 | Lot 1 | AAA | Issues | Status
+    // Spec: All | Lot 9 | Lot 9 Inop | Lot 12 | Lot 1 | AAA | Issues | Status
     return matches(c, tokens).ok;
   });
   list = list.map(c => ({ c, exact: matches(c, tokens).exact }));
@@ -547,20 +611,22 @@ function cardHTML(c) {
   const ws = c.workStatus || "";
   const wsColor = workStatusColor(ws);
   const wsBorder = wsColor ? ` ws-border-${wsColor}` : "";
+  const inopCls = isInop(c) ? " inop" : "";
   const color = c.color ? " · " + esc(c.color) : "";
   const mi = c.miles ? Number(c.miles).toLocaleString() + " mi · " : "";
   const d = days(c.purchased);
   const dayStr = d !== "" ? " · " + d + " days" : "";
   const purchased = c.purchased || "no purchase date";
+  const inopBadge = isInop(c) ? `<div class="inop-badge">INOP</div>` : "";
   const wsBadge = ws
     ? `<div class="ws-badge ws-${wsColor}">${esc(ws)}</div>`
     : "";
-  return `<article class="card ${lotCls}${has}${wsBorder}" data-stock="${esc(c.stock)}">
+  return `<article class="card ${lotCls}${has}${wsBorder}${inopCls}" data-stock="${esc(c.stock)}">
     <div class="top"><span class="stock">${esc(c.stock)}</span><span class="lot ${lotCls}">${esc(lotLabel(c.lot))}</span></div>
     <div class="meta">${esc(c.year)} ${esc(c.make)} ${esc(c.model)}${color}</div>
     <div class="meta">${mi}${esc(purchased)}${dayStr}</div>
     <div class="meta vin">VIN (last 6): ${esc(c.vin || "—")}</div>
-    ${wsBadge}
+    ${inopBadge}${wsBadge}
     ${c.issues ? `<div class="issue">${esc(c.issues)}</div>` : ""}
     ${c.flag ? `<div class="warn">${esc(c.flag)}</div>` : ""}
     <div class="actions">
@@ -574,18 +640,23 @@ function renderSections(list, q) {
   const tokens = tokensOf(q);
   const searching = tokens.length > 0;
   if (filter === "all") {
-    const g9 = list.filter(c => normLot(c.lot) === "9");
+    const g9all = list.filter(c => normLot(c.lot) === "9");
+    const g9 = g9all.filter(c => !isInop(c));
+    const g9inop = g9all.filter(c => isInop(c));
     const g12 = list.filter(c => normLot(c.lot) === "12");
     const g1 = list.filter(c => normLot(c.lot) === "1");
     const gAAA = list.filter(c => normLot(c.lot) === "AAA");
     let html = "";
     if (searching) {
-      $("matchCounts").textContent = `Matches: Lot 9 · ${g9.length}, Lot 12 · ${g12.length}, Lot 1 · ${g1.length}, AAA · ${gAAA.length} (total ${list.length})`;
+      $("matchCounts").textContent = `Matches: Lot 9 · ${g9all.length} (inop ${g9inop.length}), Lot 12 · ${g12.length}, Lot 1 · ${g1.length}, AAA · ${gAAA.length} (total ${list.length})`;
     } else {
       $("matchCounts").textContent = "";
     }
     html += `<section class="lot-section" id="live-lot-9"><h2 class="lot-head lot-head-9">Lot 9 · ${g9.length} cars</h2>`;
     html += g9.length ? g9.map(cardHTML).join("") : `<p class="sub">No cars on Lot 9 match.</p>`;
+    html += `</section>`;
+    html += `<section class="lot-section" id="live-lot-9inop"><h2 class="lot-head lot-head-9inop">Lot 9 Inop · ${g9inop.length} cars</h2>`;
+    html += g9inop.length ? g9inop.map(cardHTML).join("") : `<p class="sub">No inop units on Lot 9.</p>`;
     html += `</section>`;
     html += `<section class="lot-section" id="live-lot-12"><h2 class="lot-head lot-head-12">Lot 12 · ${g12.length} cars</h2>`;
     html += g12.length ? g12.map(cardHTML).join("") : `<p class="sub">No cars on Lot 12 match.</p>`;
@@ -601,23 +672,46 @@ function renderSections(list, q) {
   }
   if (searching) {
     const n9 = list.filter(c => normLot(c.lot) === "9").length;
+    const n9inop = list.filter(c => normLot(c.lot) === "9" && isInop(c)).length;
     const n12 = list.filter(c => normLot(c.lot) === "12").length;
     const n1 = list.filter(c => normLot(c.lot) === "1").length;
     const nAAA = list.filter(c => normLot(c.lot) === "AAA").length;
-    $("matchCounts").textContent = `Matches: Lot 9 · ${n9}, Lot 12 · ${n12}, Lot 1 · ${n1}, AAA · ${nAAA} (showing ${list.length})`;
+    $("matchCounts").textContent = `Matches: Lot 9 · ${n9} (inop ${n9inop}), Lot 12 · ${n12}, Lot 1 · ${n1}, AAA · ${nAAA} (showing ${list.length})`;
   } else {
     $("matchCounts").textContent = "";
   }
   if (!list.length) return `<p class="sub">No cars match.</p>`;
+  // Lot 9 tab: two sub-sections (regular then inop)
+  if (filter === "9") {
+    const g9 = list.filter(c => !isInop(c)).sort(sortWithin);
+    const g9inop = list.filter(c => isInop(c)).sort(sortWithin);
+    let html = "";
+    html += `<section class="lot-section" id="live-lot-9"><h2 class="lot-head lot-head-9">Lot 9 · ${g9.length} cars</h2>`;
+    html += g9.length ? g9.map(cardHTML).join("") : `<p class="sub">No operable cars on Lot 9.</p>`;
+    html += `</section>`;
+    html += `<section class="lot-section" id="live-lot-9inop"><h2 class="lot-head lot-head-9inop">Lot 9 Inop · ${g9inop.length} cars</h2>`;
+    html += g9inop.length ? g9inop.map(cardHTML).join("") : `<p class="sub">No inop units on Lot 9.</p>`;
+    html += `</section>`;
+    return html;
+  }
+  // Lot 9 Inop tab: flat list of inop only
+  if (filter === "9inop") {
+    return `<section class="lot-section" id="live-lot-9inop"><h2 class="lot-head lot-head-9inop">Lot 9 Inop · ${list.length} cars</h2>${list.map(cardHTML).join("")}</section>`;
+  }
   // single lot or issues — still group by lot if mixed (issues can span locations)
   if (filter === "issues" || filter === "status") {
-    const g9 = list.filter(c => normLot(c.lot) === "9").sort(sortWithin);
+    const g9all = list.filter(c => normLot(c.lot) === "9").sort(sortWithin);
+    const g9 = g9all.filter(c => !isInop(c));
+    const g9inop = g9all.filter(c => isInop(c));
     const g12 = list.filter(c => normLot(c.lot) === "12").sort(sortWithin);
     const g1 = list.filter(c => normLot(c.lot) === "1").sort(sortWithin);
     const gAAA = list.filter(c => normLot(c.lot) === "AAA").sort(sortWithin);
     let html = "";
     if (g9.length) {
       html += `<section class="lot-section"><h2 class="lot-head lot-head-9">Lot 9 · ${g9.length} cars</h2>${g9.map(cardHTML).join("")}</section>`;
+    }
+    if (g9inop.length) {
+      html += `<section class="lot-section"><h2 class="lot-head lot-head-9inop">Lot 9 Inop · ${g9inop.length} cars</h2>${g9inop.map(cardHTML).join("")}</section>`;
     }
     if (g12.length) {
       html += `<section class="lot-section"><h2 class="lot-head lot-head-12">Lot 12 · ${g12.length} cars</h2>${g12.map(cardHTML).join("")}</section>`;
@@ -670,7 +764,7 @@ function fillWorkStatusOptions(lot, selected) {
 
 function openEdit(stock) {
   editing = stock || null;
-  const c = stock ? findMerged(stock) : { lot: (filter === "12" || filter === "1" || filter === "AAA") ? filter : "9", status: "On lot", workStatus: "" };
+  const c = stock ? findMerged(stock) : { lot: (filter === "12" || filter === "1" || filter === "AAA") ? filter : "9", status: "On lot", workStatus: "", inop: filter === "9inop" };
   if (stock && !c) return;
   $("dlgTitle").textContent = stock || "New car";
   const f = $("form");
@@ -684,6 +778,8 @@ function openEdit(stock) {
   f.vin.value = c.vin || "";
   f.issues.value = c.issues || "";
   fillWorkStatusOptions(c.lot || "9", c.workStatus || "");
+  syncInopWrap(c.lot || "9");
+  $("inopCheck").checked = (String(c.lot || "9") === "9") && isInop(c);
   $("preview").style.display = c.photo ? "block" : "none";
   $("preview").src = c.photo || "";
   delete $("preview").dataset.pending;
@@ -715,12 +811,14 @@ function changesText() {
     if (!seed) {
       lines.push(`ADDED: ${lotLabel(c.lot)} stock ${c.stock} ${c.year} ${c.make} ${c.model}` +
         (c.color ? ` ${c.color}` : "") +
+        (isInop(c) ? " — INOP" : "") +
         (c.issues ? ` — issues: ${c.issues}` : "") +
         (c.workStatus ? ` — workStatus: ${c.workStatus}` : ""));
       continue;
     }
     const changes = [];
     if (String(c.lot) !== String(seed.lot)) changes.push(`lot ${seed.lot}→${c.lot}`);
+    if (!!c.inop !== !!seed.inop) changes.push(`inop ${!!seed.inop}→${!!c.inop}`);
     if (String(c.workStatus || "") !== String(seed.workStatus || "")) changes.push(`workStatus ${seed.workStatus || "(none)"}→${c.workStatus || "(none)"}`);
     if (String(c.issues || "") !== String(seed.issues || "")) changes.push(`issues: ${c.issues || "(cleared)"}`);
     if (String(c.color || "") !== String(seed.color || "")) changes.push(`color ${seed.color || "(blank)"}→${c.color || "(blank)"}`);
@@ -767,22 +865,25 @@ let movingStock = null;
 function openMove(c) {
   movingStock = c.stock;
   const fromHolding = HOLDING.has(c.lot);
+  const curKey = moveDestKey(c);
+  const curLabel = curKey === "9inop" ? "Lot 9 Inop" : lotLabel(c.lot);
   $("moveMsg").textContent = fromHolding
-    ? `Stock ${c.stock} is at ${lotLabel(c.lot)} (holding). Move back to Lot 9/12 or between Lot 1 and AAA:`
-    : `Stock ${c.stock} is at ${lotLabel(c.lot)}. Leaving Lot 9/12 means Lot 1 or AAA (or swap 9↔12):`;
+    ? `Stock ${c.stock} is at ${curLabel} (holding). Move back to Lot 9/12 or between Lot 1 and AAA:`
+    : `Stock ${c.stock} is at ${curLabel}. Leaving Lot 9/12 means Lot 1 or AAA (or swap 9↔12 / mark Inop):`;
   const sel = $("moveTo");
-  // Destinations: all other locations (9, 12, 1, AAA)
-  sel.innerHTML = LOTS.map(l =>
-    `<option value="${l}"${l === c.lot ? " disabled" : ""}>${lotLabel(l)}${l === c.lot ? " (current)" : ""}${HOLDING.has(l) && !fromHolding ? " — holding" : ""}</option>`
-  ).join("");
-  // Prefer holding destinations when leaving Lot 9/12
+  sel.innerHTML = MOVE_DESTS.map(d => {
+    const isCur = d.value === curKey;
+    const holdingNote = HOLDING.has(d.lot) && !fromHolding ? " — holding" : "";
+    return `<option value="${d.value}"${isCur ? " disabled" : ""}>${d.label}${isCur ? " (current)" : ""}${holdingNote}</option>`;
+  }).join("");
   let firstOther;
   if (!fromHolding) {
-    firstOther = LOTS.find(l => l !== c.lot && HOLDING.has(l)) || LOTS.find(l => l !== c.lot);
+    firstOther = MOVE_DESTS.find(d => d.value !== curKey && HOLDING.has(d.lot))
+      || MOVE_DESTS.find(d => d.value !== curKey);
   } else {
-    firstOther = LOTS.find(l => l !== c.lot);
+    firstOther = MOVE_DESTS.find(d => d.value !== curKey);
   }
-  sel.value = firstOther || c.lot;
+  sel.value = firstOther ? firstOther.value : curKey;
   $("moveDlg").showModal();
 }
 
@@ -792,16 +893,23 @@ $("moveConfirm").onclick = () => {
   if (!movingStock) return;
   const c = findMerged(movingStock);
   if (!c) { $("moveDlg").close(); return; }
-  const next = $("moveTo").value;
-  if (!LOTS.includes(next) || next === c.lot) {
+  const nextKey = $("moveTo").value;
+  const dest = MOVE_DESTS.find(d => d.value === nextKey);
+  const curKey = moveDestKey(c);
+  if (!dest || nextKey === curKey) {
     alert("Pick a different location.");
     return;
   }
-  if (!confirm(`Move stock ${c.stock} from ${lotLabel(c.lot)} to ${lotLabel(next)}?`)) return;
+  if (!confirm(`Move stock ${c.stock} from ${curKey === "9inop" ? "Lot 9 Inop" : lotLabel(c.lot)} to ${dest.label}?`)) return;
   let nextWs = c.workStatus || "";
-  const allowed = (WORK_STATUS[next] || []).map(o => o.value);
+  const allowed = (WORK_STATUS[dest.lot] || []).map(o => o.value);
   if (nextWs && !allowed.includes(nextWs)) nextWs = "";
-  const updated = Object.assign({}, c, { lot: next, workStatus: nextWs, updated: today() });
+  const updated = Object.assign({}, c, {
+    lot: dest.lot,
+    inop: dest.lot === "9" ? !!dest.inop : false,
+    workStatus: nextWs,
+    updated: today()
+  });
   persistCar(updated, !seedByStock()[movingStock]);
   movingStock = null;
   $("moveDlg").close();
@@ -813,7 +921,7 @@ document.querySelectorAll("#tabs button").forEach(b => {
     document.querySelectorAll("#tabs button").forEach(x => x.classList.remove("on"));
     b.classList.add("on");
     const raw = b.getAttribute("data-lot") || "all";
-    filter = (raw === "all" || raw === "issues" || raw === "status") ? raw : (normLot(raw) || raw);
+    filter = (raw === "all" || raw === "issues" || raw === "status" || raw === "9inop") ? raw : (normLot(raw) || raw);
     const wrap = $("statusFilterWrap");
     if (filter === "status") wrap.classList.add("on");
     else wrap.classList.remove("on");
@@ -827,6 +935,7 @@ $("statusFilter").addEventListener("change", () => {
 $("form").lot.addEventListener("change", () => {
   const f = $("form");
   fillWorkStatusOptions(f.lot.value, f.workStatus.value);
+  syncInopWrap(f.lot.value);
 });
 
 $("q").addEventListener("input", show);
@@ -896,6 +1005,8 @@ $("form").onsubmit = (e) => {
   base.issues = String(f.get("issues") || "").trim();
   base.status = "On lot"; // visibility status cannot hide a car; use Move lot to Lot 1 / AAA
   base.workStatus = String(f.get("workStatus") || "").trim();
+  // Inop only on Lot 9 (checkbox); clearing lot away from 9 clears inop
+  base.inop = (base.lot === "9") && !!$("inopCheck").checked;
   // Drop workStatus if not valid for the chosen lot (except empty)
   const allowed = (WORK_STATUS[base.lot] || []).map(o => o.value);
   if (base.workStatus && !allowed.includes(base.workStatus)) base.workStatus = "";
@@ -907,7 +1018,7 @@ $("form").onsubmit = (e) => {
 };
 
 function csv() {
-  const cols = ["stock","lot","year","make","model","color","vin","miles","purchased","price","issues","status","workStatus","updated","flag"];
+  const cols = ["stock","lot","year","make","model","color","vin","miles","purchased","price","issues","status","workStatus","inop","updated","flag"];
   const cars = mergeCars();
   const lines = [cols.join(",")].concat(cars.map(c =>
     cols.map(k => `"${String(c[k] ?? "").replaceAll('"','""')}"`).join(",")
