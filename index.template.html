@@ -111,7 +111,8 @@
 <body>
 <header>
   <h1>Lot 9, Lot 12, Lot 1, and AAA</h1>
-  <p class="sub">David's Auto Sales. Seeded from the 10/01/2026 aged inventory report. Server list is master; this phone only keeps your edits. Use <strong>Reset to server list</strong> if statuses look wrong.</p>
+  <p class="sub">David's Auto Sales. Seeded from the 10/01/2026 aged inventory report. Edits sync to the cloud so Lot Tracker and Car Count share data. Use <strong>Refresh from cloud</strong> to reload.</p>
+  <p id="syncStatus" class=""></p>
   <input id="q" type="search" placeholder="Stock #, VIN (last 6), or make/model" enterkeyhint="search" autocomplete="off" autocorrect="off" spellcheck="false">
   <div class="tabs" id="tabs">
     <button type="button" class="on" data-lot="all">All</button>
@@ -149,7 +150,7 @@
 <div class="bar" id="bar" hidden>
   <button type="button" id="add">Add car</button>
   <button type="button" id="export">Export CSV</button>
-  <button type="button" id="resetMaster" title="Clear phone overrides and reload the server list">Reset to server list</button>
+  <button type="button" id="resetMaster" title="Reload this page and pull the latest cloud data (does not wipe cloud)">Refresh from cloud</button>
   <button type="button" class="primary" id="copy">Copy for Grok</button>
 </div>
 <dialog id="dlg">
@@ -212,6 +213,7 @@
     <button type="button" id="copyClose">Close</button>
   </div>
 </dialog>
+<script src="sync.js"></script>
 <script>
 (function () {
 "use strict";
@@ -219,6 +221,7 @@
 const SEED = /*SEED_JSON*/null/*END_SEED*/;
 const KEY = "davids-lots-v2";
 const OLD_KEY = "davids-lots-v1";
+const CARCOUNT_KEY = "car-count-log-v1";
 const TRACKED = ["lot","year","make","model","color","vin","miles","purchased","price","issues","status","workStatus","flag","photo","inop"];
 const WORK_STATUS = {
   "12": [
@@ -455,7 +458,17 @@ function sanitizeOverrides() {
     // Detect change vs previous override
     const prevKeys = Object.keys(o).sort().join(",");
     const nextKeys = Object.keys(d).sort().join(",");
-    if (prevKeys !== nextKeys || JSON.stringify(o) !== JSON.stringify(d)) changed = true;
+    if (prevKeys !== nextKeys || JSON.stringify({...o, _ts: null}) !== JSON.stringify({...d, _ts: null})) changed = true;
+    // Preserve / refresh per-field timestamps for cloud LWW merge
+    if (o._ts) {
+      const nts = {};
+      for (const k of Object.keys(d)) {
+        if (k === "_ts") continue;
+        if (Object.prototype.hasOwnProperty.call(o, k) && String(o[k]) === String(d[k]) && o._ts[k] != null) nts[k] = o._ts[k];
+        else nts[k] = (o._ts && o._ts[k]) || Date.now();
+      }
+      d._ts = nts;
+    }
     next[stock] = d;
   }
   if (changed || Object.keys(next).length !== Object.keys(store.overrides || {}).length) {
@@ -495,8 +508,45 @@ function loadStore() {
   if (loaded || healed) saveStore();
 }
 
-function saveStore() {
+function saveStore(opts) {
+  // Ensure field timestamps exist so merges are LWW-safe
+  store = LotSync.ensureTrackerTimestamps(store);
   localStorage.setItem(KEY, JSON.stringify(store));
+  if (!opts || opts.sync !== false) {
+    if (window.__lotSync) window.__lotSync.scheduleSync(1000);
+  }
+}
+
+function loadCarcount() {
+  try {
+    const raw = localStorage.getItem(CARCOUNT_KEY);
+    if (raw) {
+      const p = JSON.parse(raw);
+      if (p && typeof p === "object") {
+        return {
+          v: 1,
+          entries: Array.isArray(p.entries) ? p.entries : (Array.isArray(p) ? p : []),
+          active: p.active && typeof p.active === "object" ? p.active : {},
+          removed: Array.isArray(p.removed) ? p.removed : []
+        };
+      }
+    }
+  } catch (e) {}
+  return { v: 1, entries: [], active: {}, removed: [] };
+}
+
+function saveCarcount(doc, opts) {
+  try { localStorage.setItem(CARCOUNT_KEY, JSON.stringify(doc)); } catch (e) {}
+  if (!opts || opts.sync !== false) {
+    if (window.__lotSync) window.__lotSync.scheduleSync(1000);
+  }
+}
+
+function noteLot1Move(car) {
+  if (!car || String(car.lot) !== "1") return;
+  const date = car.updated || today();
+  const next = LotSync.appendLot1Move(loadCarcount(), car, date);
+  saveCarcount(next);
 }
 
 function clearLocalOverrides() {
@@ -788,18 +838,35 @@ function openEdit(stock) {
 
 function persistCar(car, isNew) {
   const bySeed = seedByStock();
+  const prevLot = (() => {
+    try {
+      const m = findMerged(car.stock);
+      return m ? m.lot : null;
+    } catch (e) { return null; }
+  })();
   if (isNew || !bySeed[car.stock]) {
     const idx = store.added.findIndex(x => x.stock === car.stock);
-    if (idx >= 0) store.added[idx] = car;
-    else store.added.push(car);
-    // if somehow overriding a seed stock via rename — handled by stock readOnly on edit
+    const prev = idx >= 0 ? store.added[idx] : null;
+    const stamped = Object.assign({}, car, {
+      _addedAt: (prev && prev._addedAt) || Date.now(),
+      _ts: LotSync.stampOverride(prev, car)._ts
+    });
+    // stampOverride used full car; rebuild _ts only for tracked-ish keys
+    if (idx >= 0) store.added[idx] = stamped;
+    else store.added.push(stamped);
   } else {
     const d = diffAgainstSeed(car, bySeed[car.stock], { preferSeedIfLocalEmpty: true });
-    const fieldKeys = Object.keys(d).filter(k => k !== "updated");
-    if (fieldKeys.length) store.overrides[car.stock] = d;
-    else delete store.overrides[car.stock];
+    const fieldKeys = Object.keys(d).filter(k => k !== "updated" && k !== "_ts");
+    if (fieldKeys.length || d.updated) {
+      const prev = store.overrides[car.stock];
+      store.overrides[car.stock] = LotSync.stampOverride(prev, d);
+    } else {
+      delete store.overrides[car.stock];
+    }
   }
   saveStore();
+  // If now on Lot 1 (new move or already there with update), append carcount entry
+  if (String(car.lot) === "1") noteLot1Move(car);
 }
 
 function changesText() {
@@ -838,12 +905,89 @@ function changesText() {
   return "Local changes vs SEED (paste to Grok to update master):\n" + lines.join("\n");
 }
 
-// Activate live UI
+// Load local data immediately (needed for first-upload merge)
 loadStore();
-$("static-root").classList.add("hidden");
-$("static-root").hidden = true;
-$("live-root").hidden = false;
-$("bar").hidden = false;
+
+function activateLiveUI() {
+  $("static-root").classList.add("hidden");
+  $("static-root").hidden = true;
+  $("live-root").hidden = false;
+  $("bar").hidden = false;
+}
+
+const syncStatusEl = $("syncStatus") || LotSync.ensureSyncStatusEl(document.querySelector("header"));
+window.__lotSync = new LotSync.SyncEngine({
+  getLocal: (key) => {
+    if (key === "tracker") {
+      // Re-read localStorage so external/local writes are included
+      try {
+        const raw = localStorage.getItem(KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === "object" && parsed.overrides) {
+            store = { overrides: parsed.overrides || {}, added: parsed.added || [] };
+          }
+        }
+      } catch (e) {}
+      return store;
+    }
+    return loadCarcount();
+  },
+  setLocal: (key, data) => {
+    if (key === "tracker") {
+      store = data && data.overrides ? data : { overrides: {}, added: [] };
+      if (!Array.isArray(store.added)) store.added = [];
+      sanitizeOverrides();
+      saveStore({ sync: false });
+    } else {
+      saveCarcount(data || { v: 1, entries: [], active: {}, removed: [] }, { sync: false });
+    }
+  },
+  onStatus: (msg, kind) => {
+    const el = $("syncStatus");
+    if (!el) return;
+    el.textContent = msg;
+    el.className = kind === "warn" ? "warn" : (kind === "err" ? "err" : "");
+    // reuse #syncStatus styles from sync.js (#syncStatus.warn)
+    if (kind === "warn") el.className = "warn";
+    else if (kind === "err") el.className = "err";
+    else el.className = "";
+  }
+});
+
+async function bootWithSync() {
+  activateLiveUI();
+  show();
+  const eng = window.__lotSync;
+  async function afterUnlock() {
+    eng.pin = LotSync.getSavedPin();
+    try {
+      await eng.syncOnce();
+      sanitizeOverrides();
+      show();
+    } catch (e) {
+      // PIN rejected → show gate again
+      LotSync.showPinGate({
+        onUnlock: async (pin) => {
+          await eng.verifyPin(pin);
+          await afterUnlock();
+        }
+      });
+      return;
+    }
+    eng.startAutoSync();
+  }
+  if (eng.hasPin()) {
+    await afterUnlock();
+  } else {
+    LotSync.showPinGate({
+      onUnlock: async (pin) => {
+        await eng.verifyPin(pin);
+        await afterUnlock();
+      }
+    });
+  }
+}
 
 $("list").addEventListener("click", (e) => {
   const edit = e.target.closest("[data-edit]");
@@ -943,16 +1087,10 @@ $("add").onclick = () => openEdit("");
 $("cancel").onclick = () => $("dlg").close();
 $("copyClose").onclick = () => $("copyDlg").close();
 $("resetMaster").onclick = () => {
-  const n = Object.keys(store.overrides || {}).length + (store.added || []).length;
-  const msg = n
-    ? `Clear ${n} local change(s) on this phone and reload the server list? Your offline edits will be lost.`
-    : "Reload the server list on this phone? (No local edits found.)";
-  if (!confirm(msg)) return;
-  clearLocalOverrides();
-  // Must re-fetch index.html so inline SEED (including AAA) is current — show() alone
-  // only re-reads the already-loaded (possibly cached) page.
+  if (!confirm("Refresh from cloud? Reloads this page and pulls the latest shared data. Cloud data is not wiped.")) return;
+  // Do NOT clear local overrides or cloud — re-pull on next load via sync
   const url = new URL(location.href);
-  url.searchParams.set("reset", String(Date.now()));
+  url.searchParams.set("refresh", String(Date.now()));
   location.replace(url.toString());
 };
 
@@ -1045,7 +1183,7 @@ $("copy").onclick = async () => {
   }
 };
 
-show();
+bootWithSync();
 })();
 </script>
 </body>

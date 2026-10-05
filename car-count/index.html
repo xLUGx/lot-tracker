@@ -81,9 +81,10 @@
   <div class="head-row">
     <div>
       <h1>Car Count</h1>
-      <p class="sub" style="margin:0">Units moved to Lot 1 · reads Lot Tracker on this phone</p>
+      <p class="sub" style="margin:0">Units moved to Lot 1 · shared via cloud with Lot Tracker</p>
+      <p id="syncStatus" style="margin:4px 0 0"></p>
     </div>
-    <button type="button" class="small" id="refresh" title="Re-read Lot Tracker and update counts">Refresh</button>
+    <button type="button" class="small" id="refresh" title="Re-read Lot Tracker seed and sync cloud data">Refresh</button>
   </div>
 </header>
 <main>
@@ -111,9 +112,9 @@
       <div class="card" id="nowList"></div>
     </div>
     <p class="foot">
-      Data is per phone: the Car Count log lives only in this browser on this phone and is not shared with other phones or computers. Use Export CSV to keep a copy.
-      Car Count only reads Lot Tracker (it never changes it). A car counts once each time it lands on Lot 1, dated by the Lot Tracker move date (or the first day Car Count saw it). Logged units stay counted even after they leave Lot 1.
-      On iPhone, apps added to the Home Screen each get their own storage, so Car Count sees Lot Tracker edits made in the same place (for example both opened in Safari).
+      Data syncs to the cloud (same Lot code as Lot Tracker), so Home Screen apps and phones share one count log. Use Export CSV for a backup copy.
+      Car Count reads Lot Tracker from the cloud (plus the server seed list). A car counts once each time it lands on Lot 1, dated by the Lot Tracker move date (or the first day Car Count saw it). Logged units stay counted even after they leave Lot 1.
+      Lot Tracker also logs Lot 1 moves into this count when you move a car there, so counts stay accurate even if Car Count is not open.
     </p>
   </div>
 </main>
@@ -159,6 +160,7 @@
   </div>
 </dialog>
 
+<script src="../sync.js"></script>
 <script>
 (function () {
 "use strict";
@@ -171,6 +173,7 @@ const TRACKER_OLD_KEY = "davids-lots-v1";
 const LOG_KEY = "car-count-log-v1";
 const SEED_CACHE_KEY = "car-count-seed-cache-v1";
 const TRACKER_URL = "../index.html";
+const TRACKER_CLOUD_KEY = "davids-lots-v2"; // local mirror of cloud tracker doc
 
 const $ = (id) => document.getElementById(id);
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -371,9 +374,36 @@ function loadLog() {
   } catch (e) {}
   log.entries = log.entries.filter(e => e && e.stock && isISODate(e.date));
 }
-function saveLog() {
+function saveLog(opts) {
   try { localStorage.setItem(LOG_KEY, JSON.stringify(log)); }
   catch (e) { alert("Could not save Car Count log on this phone (storage full or blocked)."); }
+  if (!opts || opts.sync !== false) {
+    if (window.__lotSync) window.__lotSync.scheduleSync(1000);
+  }
+}
+
+function readCloudTrackerStore(SEED) {
+  // Prefer cloud-synced tracker mirror; fall back to any local tracker key.
+  let store = null;
+  let found = false;
+  try {
+    const raw = localStorage.getItem(TRACKER_CLOUD_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) store = snapshotToStore(SEED, parsed);
+      else if (parsed && typeof parsed === "object" && parsed.overrides) {
+        store = { overrides: parsed.overrides || {}, added: parsed.added || [] };
+      }
+      found = !!store;
+    }
+  } catch (e) {}
+  if (!store) {
+    const t = readTrackerStore(SEED);
+    return t;
+  }
+  store.overrides = sanitizedOverrides(SEED, store.overrides);
+  if (!Array.isArray(store.added)) store.added = [];
+  return { store, found };
 }
 function newId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
 function entryKey(stock, date) { return String(stock) + "|" + date; }
@@ -440,7 +470,7 @@ async function refresh() {
     } catch (e) {}
   }
   if (SEED) {
-    const t = readTrackerStore(SEED);
+    const t = readCloudTrackerStore(SEED);
     trackerFound = t.found;
     cars = mergeCars(SEED, t.store);
     addedThisRun = scan(cars);
@@ -506,7 +536,7 @@ function render() {
     st.textContent = s;
   }
   $("notice").innerHTML = (cars && !trackerFound)
-    ? `<p class="note">No Lot Tracker edits found in this browser's storage, so only the server list is visible here. Moves made in Lot Tracker show up here only when both are opened the same way on this phone (on iPhone, each Home Screen app has its own storage — e.g. open both in Safari).</p>`
+    ? `<p class="note">No Lot Tracker edits in the cloud yet for this Lot code. Move cars in Lot Tracker (unlocked with the same code) and they will show up here after sync.</p>`
     : "";
 
   // Month picker default
@@ -716,12 +746,90 @@ $("copyClose").onclick = () => $("copyDlg").close();
 
 // ---- Start -----------------------------------------------------------------
 loadLog();
-$("app").hidden = false;
-$("bar").hidden = false;
-loading = true;
-render();
-loading = false;
-refresh();
+
+window.__lotSync = new LotSync.SyncEngine({
+  getLocal: (key) => {
+    if (key === "carcount") {
+      loadLog();
+      return log;
+    }
+    try {
+      const raw = localStorage.getItem(TRACKER_CLOUD_KEY);
+      if (raw) {
+        const p = JSON.parse(raw);
+        if (p && typeof p === "object" && p.overrides) return p;
+      }
+    } catch (e) {}
+    return { overrides: {}, added: [] };
+  },
+  setLocal: (key, data) => {
+    if (key === "carcount") {
+      log = data && typeof data === "object"
+        ? {
+            v: 1,
+            entries: Array.isArray(data.entries) ? data.entries : [],
+            active: data.active && typeof data.active === "object" ? data.active : {},
+            removed: Array.isArray(data.removed) ? data.removed : []
+          }
+        : { v: 1, entries: [], active: {}, removed: [] };
+      saveLog({ sync: false });
+    } else if (key === "tracker") {
+      try { localStorage.setItem(TRACKER_CLOUD_KEY, JSON.stringify(data || { overrides: {}, added: [] })); } catch (e) {}
+    }
+  },
+  onStatus: (msg, kind) => {
+    const el = $("syncStatus");
+    if (!el) return;
+    el.textContent = msg;
+    el.className = kind === "warn" ? "warn" : (kind === "err" ? "err" : "");
+  }
+});
+
+async function bootWithSync() {
+  $("app").hidden = false;
+  $("bar").hidden = false;
+  loading = true;
+  render();
+  loading = false;
+  const eng = window.__lotSync;
+  async function afterUnlock() {
+    eng.pin = LotSync.getSavedPin();
+    try {
+      await eng.syncOnce();
+    } catch (e) {
+      LotSync.showPinGate({
+        onUnlock: async (pin) => {
+          await eng.verifyPin(pin);
+          await afterUnlock();
+        }
+      });
+      return;
+    }
+    await refresh();
+    eng.startAutoSync();
+  }
+  if (eng.hasPin()) {
+    await afterUnlock();
+  } else {
+    LotSync.showPinGate({
+      onUnlock: async (pin) => {
+        await eng.verifyPin(pin);
+        await afterUnlock();
+      }
+    });
+  }
+}
+
+// Refresh also triggers a cloud sync when unlocked
+const _origRefreshBtn = $("refresh").onclick;
+$("refresh").onclick = async () => {
+  if (window.__lotSync && window.__lotSync.hasPin()) {
+    try { await window.__lotSync.syncOnce(); } catch (e) {}
+  }
+  await refresh();
+};
+
+bootWithSync();
 })();
 </script>
 </body>
