@@ -1,7 +1,7 @@
 {
   "name": "Lot Tracker",
   "short_name": "Lot Tracker",
-  "description": "David's Auto Sales \u2014 Lot 9 and Lot 12 inventory",
+  "description": "David's Auto Sales \u2014 Lot 9, Lot 12, and AAA inventory",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#12171c",

@@ -1,6 +1,6 @@
 # Lot Tracker
 
-Lot Tracker for David's Auto Sales — Lots 9 and 12 inventory.
+Lot Tracker for David's Auto Sales — Lot 9, Lot 12, and AAA inventory.
 
 ## Open on iPhone
 

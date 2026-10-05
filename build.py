@@ -28,9 +28,24 @@ def miles_fmt(m):
         return str(m or "")
 
 
+def lot_label(lot: str) -> str:
+    if lot == "AAA":
+        return "AAA"
+    return f"Lot {lot}"
+
+
+def lot_cls(lot: str) -> str:
+    if lot == "12":
+        return "l12"
+    if lot == "AAA":
+        return "laaa"
+    return "l9"
+
+
 def card_html(c: dict) -> str:
     has = " has" if c.get("issues") else ""
-    lot_cls = "l12" if c.get("lot") == "12" else "l9"
+    lot = c.get("lot") or "9"
+    lc = lot_cls(lot)
     color = f" · {esc(c['color'])}" if c.get("color") else ""
     miles = miles_fmt(c.get("miles"))
     purchased = c.get("purchased") or "no purchase date"
@@ -40,9 +55,9 @@ def card_html(c: dict) -> str:
     vin = esc(c.get("vin") or "—")
     sid = esc(c.get("stock") or "")
     return (
-        f'<article class="card {lot_cls}{has}" id="s{sid}">'
+        f'<article class="card {lc}{has}" id="s{sid}">'
         f'<div class="top"><span class="stock">{sid}</span>'
-        f'<span class="lot {lot_cls}">Lot {esc(c.get("lot"))}</span></div>'
+        f'<span class="lot {lc}">{esc(lot_label(lot))}</span></div>'
         f'<div class="meta">{esc(c.get("year"))} {esc(c.get("make"))} {esc(c.get("model"))}{color}</div>'
         f'<div class="meta">{meta2}</div>'
         f'<div class="meta vin">VIN (last 6): {vin}</div>'
@@ -56,7 +71,7 @@ def section_html(lot: str, cars: list) -> str:
     cards = "\n".join(card_html(c) for c in cars)
     return (
         f'<section class="lot-section" id="static-lot-{lot}">'
-        f'<h2 class="lot-head lot-head-{lot}">Lot {lot} · {len(cars)} cars</h2>'
+        f'<h2 class="lot-head lot-head-{lot}">{lot_label(lot)} · {len(cars)} cars</h2>'
         f"{cards}</section>"
     )
 
@@ -64,15 +79,21 @@ def section_html(lot: str, cars: list) -> str:
 def static_list(seed: list) -> str:
     lot9 = [c for c in seed if c.get("lot") == "9"]
     lot12 = [c for c in seed if c.get("lot") == "12"]
+    lot_aaa = [c for c in seed if c.get("lot") == "AAA"]
+    jump_bits = ['<a href="#static-lot-9">Jump to Lot 9</a>', '<a href="#static-lot-12">Jump to Lot 12</a>']
+    if lot_aaa:
+        jump_bits.append('<a href="#static-lot-AAA">Jump to AAA</a>')
     jumps = (
         '<nav class="jumps" id="static-jumps">'
-        '<a href="#static-lot-9">Jump to Lot 9</a> · '
-        '<a href="#static-lot-12">Jump to Lot 12</a>'
-        "</nav>"
+        + " · ".join(jump_bits)
+        + "</nav>"
         '<noscript><p class="noscript-note">Search and editing need this page opened in Safari '
         "(not a Files/Quick Look preview). Meanwhile, use Find on Page for stock numbers.</p></noscript>"
     )
-    return jumps + section_html("9", lot9) + section_html("12", lot12)
+    out = jumps + section_html("9", lot9) + section_html("12", lot12)
+    if lot_aaa:
+        out += section_html("AAA", lot_aaa)
+    return out
 
 
 def inject(template: str, static: str, seed_json: str) -> str:
@@ -85,7 +106,8 @@ def main():
     seed = json.loads(SEED_PATH.read_text())
     n9 = sum(1 for c in seed if c["lot"] == "9")
     n12 = sum(1 for c in seed if c["lot"] == "12")
-    print(f"SEED: {len(seed)} cars — Lot 9: {n9}, Lot 12: {n12}")
+    naaa = sum(1 for c in seed if c["lot"] == "AAA")
+    print(f"SEED: {len(seed)} cars — Lot 9: {n9}, Lot 12: {n12}, AAA: {naaa}")
     static = static_list(seed)
     seed_json = json.dumps(seed, separators=(",", ":"))
     template = TEMPLATE.read_text()
@@ -105,7 +127,7 @@ def main():
     MANIFEST.write_text(json.dumps({
         "name": "Lot Tracker",
         "short_name": "Lot Tracker",
-        "description": "David's Auto Sales — Lot 9 and Lot 12 inventory",
+        "description": "David's Auto Sales — Lot 9, Lot 12, and AAA inventory",
         "start_url": "./index.html",
         "display": "standalone",
         "background_color": "#12171c",

@@ -39,15 +39,19 @@
   .lot-section { margin:0 0 18px; }
   .lot-head { font-size:15px; margin:14px 0 8px; padding:8px 10px; border-radius:10px; background:#182028; border-left:4px solid var(--teal); }
   .lot-head-12, .lot-head.lot-head-12 { border-left-color:var(--blue); }
+  .lot-head-AAA, .lot-head.lot-head-AAA { border-left-color:var(--amber); }
   article, .card { background:var(--card); border-radius:14px; padding:12px; margin:0 0 10px; border:1px solid transparent; border-left:4px solid var(--teal); }
   article.l12, .card.l12 { border-left-color:var(--blue); }
+  article.laaa, .card.laaa { border-left-color:var(--amber); }
   article.has, .card.has { border-color:#6a5428; border-left-width:4px; }
   article.has.l9, .card.has.l9 { border-left-color:var(--teal); }
   article.has.l12, .card.has.l12 { border-left-color:var(--blue); }
+  article.has.laaa, .card.has.laaa { border-left-color:var(--amber); }
   .top { display:flex; justify-content:space-between; gap:8px; align-items:center; }
   .stock { font-weight:700; }
   .lot { font-size:12px; padding:2px 8px; border-radius:99px; background:var(--teal-deep); white-space:nowrap; }
   .lot.l12 { background:var(--blue); }
+  .lot.laaa { background:#8a6a28; color:#fff; }
   .meta { color:#c5d0d6; font-size:14px; margin:4px 0; }
   .meta.vin { color:var(--muted); font-size:13px; }
   .issue { color:var(--gold); font-size:14px; margin:6px 0 0; }
@@ -70,13 +74,14 @@
 </head>
 <body>
 <header>
-  <h1>Lot 9 and Lot 12</h1>
+  <h1>Lot 9, Lot 12, and AAA</h1>
   <p class="sub">David's Auto Sales. Seeded from the 10/01/2026 aged inventory report. Stored on this phone.</p>
   <input id="q" type="search" placeholder="Stock #, VIN (last 6), or make/model" enterkeyhint="search" autocomplete="off" autocorrect="off" spellcheck="false">
   <div class="tabs" id="tabs">
     <button type="button" class="on" data-lot="all">All</button>
     <button type="button" data-lot="9">Lot 9</button>
     <button type="button" data-lot="12">Lot 12</button>
+    <button type="button" data-lot="AAA">AAA</button>
     <button type="button" data-lot="issues">Issues</button>
   </div>
 </header>
@@ -149,7 +154,7 @@
   <form id="form">
     <strong id="dlgTitle">Car</strong>
     <label>Lot</label>
-    <select name="lot"><option value="9">9</option><option value="12">12</option></select>
+    <select name="lot"><option value="9">Lot 9</option><option value="12">Lot 12</option><option value="AAA">AAA</option></select>
     <label>Stock #</label>
     <input name="stock" required>
     <label>Year / make / model</label>
@@ -176,6 +181,20 @@
     </div>
   </form>
 </dialog>
+<dialog id="moveDlg">
+  <strong>Move location</strong>
+  <p class="sub" id="moveMsg"></p>
+  <label>Send to</label>
+  <select id="moveTo">
+    <option value="9">Lot 9</option>
+    <option value="12">Lot 12</option>
+    <option value="AAA">AAA</option>
+  </select>
+  <div class="row" style="margin-top:12px">
+    <button type="button" id="moveCancel">Cancel</button>
+    <button class="primary" type="button" id="moveConfirm">Move</button>
+  </div>
+</dialog>
 <dialog id="copyDlg">
   <strong>Copy for Grok</strong>
   <p class="sub" id="copyMsg"></p>
@@ -192,6 +211,23 @@ const SEED = [{"stock":"48601-ARB","lot":"12","year":"2021","make":"Chevrolet","
 const KEY = "davids-lots-v2";
 const OLD_KEY = "davids-lots-v1";
 const TRACKED = ["lot","year","make","model","color","vin","miles","purchased","price","issues","status","flag","photo"];
+const LOTS = ["9", "12", "AAA"];
+const LOT_ORDER = { "9": 0, "12": 1, "AAA": 2 };
+
+function lotLabel(lot) {
+  if (lot === "AAA") return "AAA";
+  return "Lot " + lot;
+}
+
+function lotClass(lot) {
+  if (lot === "12") return "l12";
+  if (lot === "AAA") return "laaa";
+  return "l9";
+}
+
+function lotRank(lot) {
+  return LOT_ORDER[lot] ?? 99;
+}
 
 let store = { overrides: {}, added: [] };
 let filter = "all";
@@ -341,26 +377,25 @@ function filteredList(cars, q) {
   const tokens = tokensOf(q);
   let list = cars.filter(c => {
     if (filter === "issues") return !!c.issues && c.status === "On lot";
-    if (filter === "9" || filter === "12") {
+    if (filter === "9" || filter === "12" || filter === "AAA") {
       if (c.lot !== filter) return false;
       if (c.status !== "On lot") return false;
     }
-    // "all" shows everything including non-on-lot? Keep prior: all shows on-lot mainly but also others
-    // Spec: tabs All / Lot 9 / Lot 12 / Issues — Lot tabs only that lot on-lot
+    // Spec: tabs All / Lot 9 / Lot 12 / AAA / Issues — location tabs only that location on-lot
     if (filter === "all" && c.status !== "On lot") return false;
     return matches(c, tokens).ok;
   });
   list = list.map(c => ({ c, exact: matches(c, tokens).exact }));
   list.sort((a, b) => {
     if (a.exact !== b.exact) return a.exact ? -1 : 1;
-    if (a.c.lot !== b.c.lot) return Number(a.c.lot) - Number(b.c.lot);
+    if (a.c.lot !== b.c.lot) return lotRank(a.c.lot) - lotRank(b.c.lot);
     return sortWithin(a.c, b.c);
   });
   return list.map(x => x.c);
 }
 
 function cardHTML(c) {
-  const lotCls = c.lot === "12" ? "l12" : "l9";
+  const lotCls = lotClass(c.lot);
   const has = c.issues ? " has" : "";
   const color = c.color ? " · " + esc(c.color) : "";
   const mi = c.miles ? Number(c.miles).toLocaleString() + " mi · " : "";
@@ -368,7 +403,7 @@ function cardHTML(c) {
   const dayStr = d !== "" ? " · " + d + " days" : "";
   const purchased = c.purchased || "no purchase date";
   return `<article class="card ${lotCls}${has}" data-stock="${esc(c.stock)}">
-    <div class="top"><span class="stock">${esc(c.stock)}</span><span class="lot ${lotCls}">Lot ${esc(c.lot)}</span></div>
+    <div class="top"><span class="stock">${esc(c.stock)}</span><span class="lot ${lotCls}">${esc(lotLabel(c.lot))}</span></div>
     <div class="meta">${esc(c.year)} ${esc(c.make)} ${esc(c.model)}${color}</div>
     <div class="meta">${mi}${esc(purchased)}${dayStr}</div>
     <div class="meta vin">VIN (last 6): ${esc(c.vin || "—")}</div>
@@ -388,9 +423,10 @@ function renderSections(list, q) {
   if (filter === "all") {
     const g9 = list.filter(c => c.lot === "9");
     const g12 = list.filter(c => c.lot === "12");
+    const gAAA = list.filter(c => c.lot === "AAA");
     let html = "";
     if (searching) {
-      $("matchCounts").textContent = `Matches: Lot 9 · ${g9.length}, Lot 12 · ${g12.length} (total ${list.length})`;
+      $("matchCounts").textContent = `Matches: Lot 9 · ${g9.length}, Lot 12 · ${g12.length}, AAA · ${gAAA.length} (total ${list.length})`;
     } else {
       $("matchCounts").textContent = "";
     }
@@ -400,26 +436,37 @@ function renderSections(list, q) {
     html += `<section class="lot-section" id="live-lot-12"><h2 class="lot-head lot-head-12">Lot 12 · ${g12.length} cars</h2>`;
     html += g12.length ? g12.map(cardHTML).join("") : `<p class="sub">No cars on Lot 12 match.</p>`;
     html += `</section>`;
+    // AAA: hide when empty (start with zero); show when any cars or searching
+    if (gAAA.length || searching) {
+      html += `<section class="lot-section" id="live-lot-AAA"><h2 class="lot-head lot-head-AAA">AAA · ${gAAA.length} cars</h2>`;
+      html += gAAA.length ? gAAA.map(cardHTML).join("") : `<p class="sub">No cars at AAA match.</p>`;
+      html += `</section>`;
+    }
     return html;
   }
   if (searching) {
     const n9 = list.filter(c => c.lot === "9").length;
     const n12 = list.filter(c => c.lot === "12").length;
-    $("matchCounts").textContent = `Matches: Lot 9 · ${n9}, Lot 12 · ${n12} (showing ${list.length})`;
+    const nAAA = list.filter(c => c.lot === "AAA").length;
+    $("matchCounts").textContent = `Matches: Lot 9 · ${n9}, Lot 12 · ${n12}, AAA · ${nAAA} (showing ${list.length})`;
   } else {
     $("matchCounts").textContent = "";
   }
   if (!list.length) return `<p class="sub">No cars match.</p>`;
-  // single lot or issues — still group by lot if mixed (issues can span both)
+  // single lot or issues — still group by lot if mixed (issues can span locations)
   if (filter === "issues") {
     const g9 = list.filter(c => c.lot === "9").sort(sortWithin);
     const g12 = list.filter(c => c.lot === "12").sort(sortWithin);
+    const gAAA = list.filter(c => c.lot === "AAA").sort(sortWithin);
     let html = "";
     if (g9.length) {
       html += `<section class="lot-section"><h2 class="lot-head lot-head-9">Lot 9 · ${g9.length} cars</h2>${g9.map(cardHTML).join("")}</section>`;
     }
     if (g12.length) {
       html += `<section class="lot-section"><h2 class="lot-head lot-head-12">Lot 12 · ${g12.length} cars</h2>${g12.map(cardHTML).join("")}</section>`;
+    }
+    if (gAAA.length) {
+      html += `<section class="lot-section"><h2 class="lot-head lot-head-AAA">AAA · ${gAAA.length} cars</h2>${gAAA.map(cardHTML).join("")}</section>`;
     }
     return html || `<p class="sub">No cars match.</p>`;
   }
@@ -434,6 +481,7 @@ function show() {
     [on.length, "On lot"],
     [on.filter(c => c.lot === "9").length, "Lot 9"],
     [on.filter(c => c.lot === "12").length, "Lot 12"],
+    [on.filter(c => c.lot === "AAA").length, "AAA"],
     [on.filter(c => c.issues).length, "Issues"]
   ].map(([n, l]) => `<div><b>${n}</b><span>${l}</span></div>`).join("");
   const list = filteredList(cars, q);
@@ -446,7 +494,7 @@ function findMerged(stock) {
 
 function openEdit(stock) {
   editing = stock || null;
-  const c = stock ? findMerged(stock) : { lot: filter === "12" ? "12" : "9", status: "On lot" };
+  const c = stock ? findMerged(stock) : { lot: (filter === "12" || filter === "AAA") ? filter : "9", status: "On lot" };
   if (stock && !c) return;
   $("dlgTitle").textContent = stock || "New car";
   const f = $("form");
@@ -488,7 +536,7 @@ function changesText() {
   for (const c of cars) {
     const seed = bySeed[c.stock];
     if (!seed) {
-      lines.push(`ADDED: Lot ${c.lot} stock ${c.stock} ${c.year} ${c.make} ${c.model}` +
+      lines.push(`ADDED: ${lotLabel(c.lot)} stock ${c.stock} ${c.year} ${c.make} ${c.model}` +
         (c.color ? ` ${c.color}` : "") +
         (c.issues ? ` — issues: ${c.issues}` : "") +
         (c.status && c.status !== "On lot" ? ` — status: ${c.status}` : ""));
@@ -533,13 +581,42 @@ $("list").addEventListener("click", (e) => {
     const stock = move.getAttribute("data-move");
     const c = findMerged(stock);
     if (!c) return;
-    const next = c.lot === "9" ? "12" : "9";
-    if (!confirm(`Move stock ${c.stock} from Lot ${c.lot} to Lot ${next}?`)) return;
-    const updated = Object.assign({}, c, { lot: next, updated: today() });
-    persistCar(updated, !seedByStock()[stock]);
-    show();
+    openMove(c);
   }
 });
+
+let movingStock = null;
+
+function openMove(c) {
+  movingStock = c.stock;
+  $("moveMsg").textContent = `Stock ${c.stock} is at ${lotLabel(c.lot)}. Pick a destination:`;
+  const sel = $("moveTo");
+  sel.innerHTML = LOTS.map(l =>
+    `<option value="${l}"${l === c.lot ? " disabled" : ""}>${lotLabel(l)}${l === c.lot ? " (current)" : ""}</option>`
+  ).join("");
+  const firstOther = LOTS.find(l => l !== c.lot);
+  sel.value = firstOther || c.lot;
+  $("moveDlg").showModal();
+}
+
+$("moveCancel").onclick = () => { movingStock = null; $("moveDlg").close(); };
+
+$("moveConfirm").onclick = () => {
+  if (!movingStock) return;
+  const c = findMerged(movingStock);
+  if (!c) { $("moveDlg").close(); return; }
+  const next = $("moveTo").value;
+  if (!LOTS.includes(next) || next === c.lot) {
+    alert("Pick a different location.");
+    return;
+  }
+  if (!confirm(`Move stock ${c.stock} from ${lotLabel(c.lot)} to ${lotLabel(next)}?`)) return;
+  const updated = Object.assign({}, c, { lot: next, updated: today() });
+  persistCar(updated, !seedByStock()[movingStock]);
+  movingStock = null;
+  $("moveDlg").close();
+  show();
+};
 
 document.querySelectorAll("#tabs button").forEach(b => {
   b.addEventListener("click", () => {
@@ -619,7 +696,7 @@ function csv() {
   const blob = new Blob([lines.join("\n")], { type: "text/csv" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "lot-9-and-12.csv";
+  a.download = "lot-tracker.csv";
   a.click();
 }
 $("export").onclick = csv;
