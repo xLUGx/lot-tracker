@@ -27,8 +27,8 @@
   input, select { width:100%; }
   button { background:#24303a; cursor:pointer; }
   button.primary { background:var(--teal-deep); border-color:var(--teal-deep); font-weight:650; }
-  .tabs { display:flex; gap:6px; margin-top:8px; }
-  .tabs button { flex:1; }
+  .tabs { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .tabs button { flex:1; min-width:4.5em; font-size:13px; padding:8px 6px; }
   .tabs button.on { background:var(--teal-deep); }
   main { padding:12px 14px 96px; }
   .counts { display:flex; gap:8px; margin:10px 0; }
@@ -39,18 +39,22 @@
   .lot-section { margin:0 0 18px; }
   .lot-head { font-size:15px; margin:14px 0 8px; padding:8px 10px; border-radius:10px; background:#182028; border-left:4px solid var(--teal); }
   .lot-head-12, .lot-head.lot-head-12 { border-left-color:var(--blue); }
+  .lot-head-1, .lot-head.lot-head-1 { border-left-color:#7a6fa8; }
   .lot-head-AAA, .lot-head.lot-head-AAA { border-left-color:var(--amber); }
   article, .card { background:var(--card); border-radius:14px; padding:12px; margin:0 0 10px; border:1px solid transparent; border-left:4px solid var(--teal); }
   article.l12, .card.l12 { border-left-color:var(--blue); }
+  article.l1, .card.l1 { border-left-color:#7a6fa8; }
   article.laaa, .card.laaa { border-left-color:var(--amber); }
   article.has, .card.has { border-color:#6a5428; border-left-width:4px; }
   article.has.l9, .card.has.l9 { border-left-color:var(--teal); }
   article.has.l12, .card.has.l12 { border-left-color:var(--blue); }
+  article.has.l1, .card.has.l1 { border-left-color:#7a6fa8; }
   article.has.laaa, .card.has.laaa { border-left-color:var(--amber); }
   .top { display:flex; justify-content:space-between; gap:8px; align-items:center; }
   .stock { font-weight:700; }
   .lot { font-size:12px; padding:2px 8px; border-radius:99px; background:var(--teal-deep); white-space:nowrap; }
   .lot.l12 { background:var(--blue); }
+  .lot.l1 { background:#5a5280; color:#fff; }
   .lot.laaa { background:#8a6a28; color:#fff; }
   .meta { color:#c5d0d6; font-size:14px; margin:4px 0; }
   .meta.vin { color:var(--muted); font-size:13px; }
@@ -74,13 +78,14 @@
 </head>
 <body>
 <header>
-  <h1>Lot 9, Lot 12, and AAA</h1>
+  <h1>Lot 9, Lot 12, Lot 1, and AAA</h1>
   <p class="sub">David's Auto Sales. Seeded from the 10/01/2026 aged inventory report. Stored on this phone.</p>
   <input id="q" type="search" placeholder="Stock #, VIN (last 6), or make/model" enterkeyhint="search" autocomplete="off" autocorrect="off" spellcheck="false">
   <div class="tabs" id="tabs">
     <button type="button" class="on" data-lot="all">All</button>
     <button type="button" data-lot="9">Lot 9</button>
     <button type="button" data-lot="12">Lot 12</button>
+    <button type="button" data-lot="1">Lot 1</button>
     <button type="button" data-lot="AAA">AAA</button>
     <button type="button" data-lot="issues">Issues</button>
   </div>
@@ -154,7 +159,7 @@
   <form id="form">
     <strong id="dlgTitle">Car</strong>
     <label>Lot</label>
-    <select name="lot"><option value="9">Lot 9</option><option value="12">Lot 12</option><option value="AAA">AAA</option></select>
+    <select name="lot"><option value="9">Lot 9</option><option value="12">Lot 12</option><option value="1">Lot 1</option><option value="AAA">AAA</option></select>
     <label>Stock #</label>
     <input name="stock" required>
     <label>Year / make / model</label>
@@ -169,8 +174,7 @@
     <input name="vin" maxlength="6" placeholder="Last 6">
     <label>What is wrong</label>
     <textarea name="issues" placeholder="Battery dead, AC weak, driver fender dented"></textarea>
-    <label>Status</label>
-    <select name="status"><option>On lot</option><option>Sold</option><option>Moved</option><option>Wholesale</option></select>
+    <p class="warn" style="margin-top:8px">Cars stay on a list. To leave Lot 9 or Lot 12, use <strong>Move lot</strong> to Lot 1 or AAA (not a status).</p>
     <label>Photo</label>
     <input name="photo" type="file" accept="image/*" capture="environment">
     <img class="photo" id="preview" alt="">
@@ -188,6 +192,7 @@
   <select id="moveTo">
     <option value="9">Lot 9</option>
     <option value="12">Lot 12</option>
+    <option value="1">Lot 1</option>
     <option value="AAA">AAA</option>
   </select>
   <div class="row" style="margin-top:12px">
@@ -211,8 +216,9 @@ const SEED = [{"stock":"48601-ARB","lot":"12","year":"2021","make":"Chevrolet","
 const KEY = "davids-lots-v2";
 const OLD_KEY = "davids-lots-v1";
 const TRACKED = ["lot","year","make","model","color","vin","miles","purchased","price","issues","status","flag","photo"];
-const LOTS = ["9", "12", "AAA"];
-const LOT_ORDER = { "9": 0, "12": 1, "AAA": 2 };
+const LOTS = ["9", "12", "1", "AAA"];
+const LOT_ORDER = { "9": 0, "12": 1, "1": 2, "AAA": 3 };
+const HOLDING = new Set(["1", "AAA"]); // Lot 1 & AAA — not in top summary counts
 
 function lotLabel(lot) {
   if (lot === "AAA") return "AAA";
@@ -221,6 +227,7 @@ function lotLabel(lot) {
 
 function lotClass(lot) {
   if (lot === "12") return "l12";
+  if (lot === "1") return "l1";
   if (lot === "AAA") return "laaa";
   return "l9";
 }
@@ -327,6 +334,13 @@ function mergeCars() {
   for (const a of store.added) {
     if (!bySeed[a.stock]) out.push(Object.assign({}, a));
   }
+  // Cars must never disappear via Sold/Moved/Wholesale — keep visible at their lot
+  for (const c of out) {
+    if (c.status === "Sold" || c.status === "Moved" || c.status === "Wholesale") {
+      c.status = "On lot";
+    }
+    if (!c.status) c.status = "On lot";
+  }
   return out;
 }
 
@@ -376,13 +390,12 @@ function matches(car, tokens) {
 function filteredList(cars, q) {
   const tokens = tokensOf(q);
   let list = cars.filter(c => {
-    if (filter === "issues") return !!c.issues && c.status === "On lot" && (c.lot === "9" || c.lot === "12");
-    if (filter === "9" || filter === "12" || filter === "AAA") {
+    // Never drop a car for status — leaving Lot 9/12 is an explicit move to Lot 1 or AAA
+    if (filter === "issues") return !!c.issues && (c.lot === "9" || c.lot === "12");
+    if (filter === "9" || filter === "12" || filter === "1" || filter === "AAA") {
       if (c.lot !== filter) return false;
-      if (c.status !== "On lot") return false;
     }
-    // Spec: tabs All / Lot 9 / Lot 12 / AAA / Issues — location tabs only that location on-lot
-    if (filter === "all" && c.status !== "On lot") return false;
+    // Spec: All | Lot 9 | Lot 12 | Lot 1 | AAA | Issues
     return matches(c, tokens).ok;
   });
   list = list.map(c => ({ c, exact: matches(c, tokens).exact }));
@@ -423,10 +436,11 @@ function renderSections(list, q) {
   if (filter === "all") {
     const g9 = list.filter(c => c.lot === "9");
     const g12 = list.filter(c => c.lot === "12");
+    const g1 = list.filter(c => c.lot === "1");
     const gAAA = list.filter(c => c.lot === "AAA");
     let html = "";
     if (searching) {
-      $("matchCounts").textContent = `Matches: Lot 9 · ${g9.length}, Lot 12 · ${g12.length}, AAA · ${gAAA.length} (total ${list.length})`;
+      $("matchCounts").textContent = `Matches: Lot 9 · ${g9.length}, Lot 12 · ${g12.length}, Lot 1 · ${g1.length}, AAA · ${gAAA.length} (total ${list.length})`;
     } else {
       $("matchCounts").textContent = "";
     }
@@ -436,7 +450,12 @@ function renderSections(list, q) {
     html += `<section class="lot-section" id="live-lot-12"><h2 class="lot-head lot-head-12">Lot 12 · ${g12.length} cars</h2>`;
     html += g12.length ? g12.map(cardHTML).join("") : `<p class="sub">No cars on Lot 12 match.</p>`;
     html += `</section>`;
-    // AAA: hide when empty (start with zero); show when any cars or searching
+    // Lot 1 & AAA: holding places — hide when empty (seed starts at zero)
+    if (g1.length || searching) {
+      html += `<section class="lot-section" id="live-lot-1"><h2 class="lot-head lot-head-1">Lot 1 · ${g1.length} cars</h2>`;
+      html += g1.length ? g1.map(cardHTML).join("") : `<p class="sub">No cars on Lot 1 match.</p>`;
+      html += `</section>`;
+    }
     if (gAAA.length || searching) {
       html += `<section class="lot-section" id="live-lot-AAA"><h2 class="lot-head lot-head-AAA">AAA · ${gAAA.length} cars</h2>`;
       html += gAAA.length ? gAAA.map(cardHTML).join("") : `<p class="sub">No cars at AAA match.</p>`;
@@ -447,8 +466,9 @@ function renderSections(list, q) {
   if (searching) {
     const n9 = list.filter(c => c.lot === "9").length;
     const n12 = list.filter(c => c.lot === "12").length;
+    const n1 = list.filter(c => c.lot === "1").length;
     const nAAA = list.filter(c => c.lot === "AAA").length;
-    $("matchCounts").textContent = `Matches: Lot 9 · ${n9}, Lot 12 · ${n12}, AAA · ${nAAA} (showing ${list.length})`;
+    $("matchCounts").textContent = `Matches: Lot 9 · ${n9}, Lot 12 · ${n12}, Lot 1 · ${n1}, AAA · ${nAAA} (showing ${list.length})`;
   } else {
     $("matchCounts").textContent = "";
   }
@@ -472,8 +492,8 @@ function renderSections(list, q) {
 function show() {
   const cars = mergeCars();
   const q = $("q").value;
-  // Counts are Lot 9/12 only — AAA is a separate holding place and must not inflate On lot / Issues
-  const onLots = cars.filter(c => c.status === "On lot" && (c.lot === "9" || c.lot === "12"));
+  // Counts are Lot 9/12 only — Lot 1 & AAA are holding places and must not inflate On lot / Issues
+  const onLots = cars.filter(c => (c.lot === "9" || c.lot === "12"));
   $("counts").innerHTML = [
     [onLots.length, "On lot"],
     [onLots.filter(c => c.lot === "9").length, "Lot 9"],
@@ -490,7 +510,7 @@ function findMerged(stock) {
 
 function openEdit(stock) {
   editing = stock || null;
-  const c = stock ? findMerged(stock) : { lot: (filter === "12" || filter === "AAA") ? filter : "9", status: "On lot" };
+  const c = stock ? findMerged(stock) : { lot: (filter === "12" || filter === "1" || filter === "AAA") ? filter : "9", status: "On lot" };
   if (stock && !c) return;
   $("dlgTitle").textContent = stock || "New car";
   const f = $("form");
@@ -503,7 +523,6 @@ function openEdit(stock) {
   f.color.value = c.color || "";
   f.vin.value = c.vin || "";
   f.issues.value = c.issues || "";
-  f.status.value = c.status || "On lot";
   $("preview").style.display = c.photo ? "block" : "none";
   $("preview").src = c.photo || "";
   delete $("preview").dataset.pending;
@@ -585,12 +604,22 @@ let movingStock = null;
 
 function openMove(c) {
   movingStock = c.stock;
-  $("moveMsg").textContent = `Stock ${c.stock} is at ${lotLabel(c.lot)}. Pick a destination:`;
+  const fromHolding = HOLDING.has(c.lot);
+  $("moveMsg").textContent = fromHolding
+    ? `Stock ${c.stock} is at ${lotLabel(c.lot)} (holding). Move back to Lot 9/12 or between Lot 1 and AAA:`
+    : `Stock ${c.stock} is at ${lotLabel(c.lot)}. Leaving Lot 9/12 means Lot 1 or AAA (or swap 9↔12):`;
   const sel = $("moveTo");
+  // Destinations: all other locations (9, 12, 1, AAA)
   sel.innerHTML = LOTS.map(l =>
-    `<option value="${l}"${l === c.lot ? " disabled" : ""}>${lotLabel(l)}${l === c.lot ? " (current)" : ""}</option>`
+    `<option value="${l}"${l === c.lot ? " disabled" : ""}>${lotLabel(l)}${l === c.lot ? " (current)" : ""}${HOLDING.has(l) && !fromHolding ? " — holding" : ""}</option>`
   ).join("");
-  const firstOther = LOTS.find(l => l !== c.lot);
+  // Prefer holding destinations when leaving Lot 9/12
+  let firstOther;
+  if (!fromHolding) {
+    firstOther = LOTS.find(l => l !== c.lot && HOLDING.has(l)) || LOTS.find(l => l !== c.lot);
+  } else {
+    firstOther = LOTS.find(l => l !== c.lot);
+  }
   sel.value = firstOther || c.lot;
   $("moveDlg").showModal();
 }
@@ -675,7 +704,7 @@ $("form").onsubmit = (e) => {
   base.color = String(f.get("color") || "").trim();
   base.vin = String(f.get("vin") || "").trim();
   base.issues = String(f.get("issues") || "").trim();
-  base.status = String(f.get("status") || "On lot");
+  base.status = "On lot"; // status cannot hide a car; use Move lot to Lot 1 / AAA
   base.updated = today();
   if ($("preview").dataset.pending) base.photo = $("preview").dataset.pending;
   persistCar(base, isNew || !bySeed[stock]);

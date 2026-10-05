@@ -37,6 +37,8 @@ def lot_label(lot: str) -> str:
 def lot_cls(lot: str) -> str:
     if lot == "12":
         return "l12"
+    if lot == "1":
+        return "l1"
     if lot == "AAA":
         return "laaa"
     return "l9"
@@ -79,8 +81,11 @@ def section_html(lot: str, cars: list) -> str:
 def static_list(seed: list) -> str:
     lot9 = [c for c in seed if c.get("lot") == "9"]
     lot12 = [c for c in seed if c.get("lot") == "12"]
+    lot1 = [c for c in seed if c.get("lot") == "1"]
     lot_aaa = [c for c in seed if c.get("lot") == "AAA"]
     jump_bits = ['<a href="#static-lot-9">Jump to Lot 9</a>', '<a href="#static-lot-12">Jump to Lot 12</a>']
+    if lot1:
+        jump_bits.append('<a href="#static-lot-1">Jump to Lot 1</a>')
     if lot_aaa:
         jump_bits.append('<a href="#static-lot-AAA">Jump to AAA</a>')
     jumps = (
@@ -91,6 +96,9 @@ def static_list(seed: list) -> str:
         "(not a Files/Quick Look preview). Meanwhile, use Find on Page for stock numbers.</p></noscript>"
     )
     out = jumps + section_html("9", lot9) + section_html("12", lot12)
+    # Lot 1 & AAA: holding places — omit empty sections (seed starts at zero)
+    if lot1:
+        out += section_html("1", lot1)
     if lot_aaa:
         out += section_html("AAA", lot_aaa)
     return out
@@ -106,8 +114,9 @@ def main():
     seed = json.loads(SEED_PATH.read_text())
     n9 = sum(1 for c in seed if c["lot"] == "9")
     n12 = sum(1 for c in seed if c["lot"] == "12")
+    n1 = sum(1 for c in seed if c["lot"] == "1")
     naaa = sum(1 for c in seed if c["lot"] == "AAA")
-    print(f"SEED: {len(seed)} cars — Lot 9: {n9}, Lot 12: {n12}, AAA: {naaa}")
+    print(f"SEED: {len(seed)} cars — Lot 9: {n9}, Lot 12: {n12}, Lot 1: {n1}, AAA: {naaa}")
     static = static_list(seed)
     seed_json = json.dumps(seed, separators=(",", ":"))
     template = TEMPLATE.read_text()
@@ -127,7 +136,7 @@ def main():
     MANIFEST.write_text(json.dumps({
         "name": "Lot Tracker",
         "short_name": "Lot Tracker",
-        "description": "David's Auto Sales — Lot 9, Lot 12, and AAA inventory",
+        "description": "David's Auto Sales — Lot 9, Lot 12, Lot 1, and AAA inventory",
         "start_url": "./index.html",
         "display": "standalone",
         "background_color": "#12171c",
