@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lot Tracker">
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#12171c">
+<title>Lot Tracker</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg:#12171c; --card:#1c242c; --ink:#eef3f6; --muted:#9aabb6; --line:#2c3842;
+    --teal:#3dbeb6; --teal-deep:#1f6f6a; --blue:#3d5a80; --gold:#e2c27a; --amber:#e2b15a;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:var(--bg); color:var(--ink); }
+  header { position:sticky; top:0; z-index:2; background:#12171ce6; backdrop-filter:blur(8px); padding:12px 14px 8px; border-bottom:1px solid var(--line); }
+  h1 { font-size:18px; margin:0 0 2px; }
+  .sub { color:var(--muted); font-size:12px; margin:0 0 8px; }
+  .row { display:flex; gap:8px; }
+  input, select, textarea, button { font:inherit; color:var(--ink); background:#10161b; border:1px solid var(--line); border-radius:10px; padding:10px 12px; }
+  input, select { width:100%; }
+  button { background:#24303a; cursor:pointer; }
+  button.primary { background:var(--teal-deep); border-color:var(--teal-deep); font-weight:650; }
+  .tabs { display:flex; gap:6px; margin-top:8px; }
+  .tabs button { flex:1; }
+  .tabs button.on { background:var(--teal-deep); }
+  main { padding:12px 14px 96px; }
+  .counts { display:flex; gap:8px; margin:10px 0; }
+  .counts div { flex:1; background:var(--card); border-radius:10px; padding:8px; text-align:center; }
+  .counts b { display:block; font-size:20px; }
+  .counts span { color:var(--muted); font-size:12px; }
+  .match-counts { color:var(--muted); font-size:13px; margin:0 0 10px; min-height:1.2em; }
+  .lot-section { margin:0 0 18px; }
+  .lot-head { font-size:15px; margin:14px 0 8px; padding:8px 10px; border-radius:10px; background:#182028; border-left:4px solid var(--teal); }
+  .lot-head-12, .lot-head.lot-head-12 { border-left-color:var(--blue); }
+  article, .card { background:var(--card); border-radius:14px; padding:12px; margin:0 0 10px; border:1px solid transparent; border-left:4px solid var(--teal); }
+  article.l12, .card.l12 { border-left-color:var(--blue); }
+  article.has, .card.has { border-color:#6a5428; border-left-width:4px; }
+  article.has.l9, .card.has.l9 { border-left-color:var(--teal); }
+  article.has.l12, .card.has.l12 { border-left-color:var(--blue); }
+  .top { display:flex; justify-content:space-between; gap:8px; align-items:center; }
+  .stock { font-weight:700; }
+  .lot { font-size:12px; padding:2px 8px; border-radius:99px; background:var(--teal-deep); white-space:nowrap; }
+  .lot.l12 { background:var(--blue); }
+  .meta { color:#c5d0d6; font-size:14px; margin:4px 0; }
+  .meta.vin { color:var(--muted); font-size:13px; }
+  .issue { color:var(--gold); font-size:14px; margin:6px 0 0; }
+  .actions { display:flex; gap:6px; margin-top:8px; }
+  .actions button { flex:1; padding:8px; font-size:14px; }
+  dialog { width:min(520px, calc(100% - 24px)); background:#1c242c; color:var(--ink); border:1px solid var(--line); border-radius:16px; padding:14px; }
+  dialog::backdrop { background:#0008; }
+  label { display:block; color:var(--muted); font-size:12px; margin:8px 0 4px; }
+  textarea { width:100%; min-height:90px; }
+  .photo { width:100%; border-radius:10px; margin-top:8px; display:none; }
+  .bar { position:fixed; bottom:0; left:0; right:0; display:flex; gap:8px; padding:10px 14px calc(10px + env(safe-area-inset-bottom)); background:#12171cf0; border-top:1px solid var(--line); z-index:3; }
+  .bar button { flex:1; font-size:14px; }
+  .warn { color:var(--amber); font-size:12px; margin-top:6px; }
+  .jumps { margin:8px 0 12px; font-size:14px; }
+  .jumps a { color:var(--teal); }
+  .noscript-note { background:#2a2214; border:1px solid #6a5428; color:var(--gold); padding:10px 12px; border-radius:10px; font-size:13px; margin:0 0 12px; }
+  .copy-fallback { white-space:pre-wrap; background:#10161b; border:1px solid var(--line); border-radius:10px; padding:10px; font-size:13px; margin-top:10px; max-height:40vh; overflow:auto; }
+  #live-root[hidden], #static-root.hidden { display:none !important; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Lot 9 and Lot 12</h1>
+  <p class="sub">David's Auto Sales. Seeded from the 10/01/2026 aged inventory report. Stored on this phone.</p>
+  <input id="q" type="search" placeholder="Stock #, VIN (last 6), or make/model" enterkeyhint="search" autocomplete="off" autocorrect="off" spellcheck="false">
+  <div class="tabs" id="tabs">
+    <button type="button" class="on" data-lot="all">All</button>
+    <button type="button" data-lot="9">Lot 9</button>
+    <button type="button" data-lot="12">Lot 12</button>
+    <button type="button" data-lot="issues">Issues</button>
+  </div>
+</header>
+<main>
+  <div id="static-root">
+    <nav class="jumps" id="static-jumps"><a href="#static-lot-9">Jump to Lot 9</a> · <a href="#static-lot-12">Jump to Lot 12</a></nav><noscript><p class="noscript-note">Search and editing need this page opened in Safari (not a Files/Quick Look preview). Meanwhile, use Find on Page for stock numbers.</p></noscript><section class="lot-section" id="static-lot-9"><h2 class="lot-head lot-head-9">Lot 9 · 22 cars</h2><article class="card l9 has" id="s52145"><div class="top"><span class="stock">52145</span><span class="lot l9">Lot 9</span></div><div class="meta">2016 Buick Enclave · White</div><div class="meta">135,787 mi · purchased 2026-08-24</div><div class="meta vin">VIN (last 6): 251039</div><div class="issue">Needs a water pump. AutoZone says it will be here 10/15/2026.</div></article>
+<article class="card l9" id="s52208"><div class="top"><span class="stock">52208</span><span class="lot l9">Lot 9</span></div><div class="meta">2015 Chevrolet Equinox</div><div class="meta">126,461 mi · purchased 2026-09-28</div><div class="meta vin">VIN (last 6): 613604</div><div class="warn">Color not readable on 10/01 photo</div></article>
+<article class="card l9" id="s52185-I"><div class="top"><span class="stock">52185-I</span><span class="lot l9">Lot 9</span></div><div class="meta">2015 Chevrolet Malibu · Silver</div><div class="meta">111,465 mi · purchased 2026-09-10</div><div class="meta vin">VIN (last 6): 233668</div></article>
+<article class="card l9" id="s51256"><div class="top"><span class="stock">51256</span><span class="lot l9">Lot 9</span></div><div class="meta">2017 Chevrolet Traverse</div><div class="meta">143,386 mi · purchased 2026-08-07</div><div class="meta vin">VIN (last 6): 292243</div><div class="warn">Color not readable on 10/01 photo</div></article>
+<article class="card l9" id="s52902-I"><div class="top"><span class="stock">52902-I</span><span class="lot l9">Lot 9</span></div><div class="meta">2015 Dodge Charger</div><div class="meta">149,741 mi · purchased 2026-09-30</div><div class="meta vin">VIN (last 6): 500929</div><div class="warn">Color not readable on 10/01 photo</div></article>
+<article class="card l9" id="s52204-I"><div class="top"><span class="stock">52204-I</span><span class="lot l9">Lot 9</span></div><div class="meta">2016 Dodge Grand Caravan · Black</div><div class="meta">144,804 mi · purchased 2026-09-21</div><div class="meta vin">VIN (last 6): 120245</div></article>
+<article class="card l9" id="s52189-I"><div class="top"><span class="stock">52189-I</span><span class="lot l9">Lot 9</span></div><div class="meta">2019 Dodge Journey · Silver</div><div class="meta">171,311 mi · purchased 2026-09-11</div><div class="meta vin">VIN (last 6): 803406</div></article>
+<article class="card l9" id="s52192"><div class="top"><span class="stock">52192</span><span class="lot l9">Lot 9</span></div><div class="meta">2015 Dodge Journey · Grey</div><div class="meta">174,606 mi · purchased 2026-09-14</div><div class="meta vin">VIN (last 6): 944642</div></article>
+<article class="card l9" id="s52213"><div class="top"><span class="stock">52213</span><span class="lot l9">Lot 9</span></div><div class="meta">2017 Dodge Journey · Grey</div><div class="meta">134,755 mi · purchased 2026-09-28</div><div class="meta vin">VIN (last 6): 516597</div></article>
+<article class="card l9" id="s52202"><div class="top"><span class="stock">52202</span><span class="lot l9">Lot 9</span></div><div class="meta">2013 Ford Explorer · White</div><div class="meta">140,895 mi · purchased 2026-09-21</div><div class="meta vin">VIN (last 6): 382784</div></article>
+<article class="card l9" id="s51210-I"><div class="top"><span class="stock">51210-I</span><span class="lot l9">Lot 9</span></div><div class="meta">2012 Ford Fusion · Grey</div><div class="meta">114,130 mi · purchased 2026-07-18</div><div class="meta vin">VIN (last 6): 147813</div></article>
+<article class="card l9" id="s51266"><div class="top"><span class="stock">51266</span><span class="lot l9">Lot 9</span></div><div class="meta">2020 Hyundai Elantra · Black</div><div class="meta">99,609 mi · purchased 2026-08-11</div><div class="meta vin">VIN (last 6): 570682</div></article>
+<article class="card l9" id="s52211-I"><div class="top"><span class="stock">52211-I</span><span class="lot l9">Lot 9</span></div><div class="meta">2015 Hyundai Sonata · Red</div><div class="meta">151,603 mi · purchased 2026-09-28</div><div class="meta vin">VIN (last 6): 241021</div></article>
+<article class="card l9" id="s52198"><div class="top"><span class="stock">52198</span><span class="lot l9">Lot 9</span></div><div class="meta">2015 Jeep Grand Cherokee · White</div><div class="meta">170,530 mi · purchased 2026-09-17</div><div class="meta vin">VIN (last 6): C03594</div><div class="warn">VIN partial printed oddly as C03594 — verify</div></article>
+<article class="card l9" id="s52200"><div class="top"><span class="stock">52200</span><span class="lot l9">Lot 9</span></div><div class="meta">2012 Jeep Grand Cherokee</div><div class="meta">198,150 mi · purchased 2026-09-29</div><div class="meta vin">VIN (last 6): 305496</div><div class="warn">Color not readable on 10/01 photo</div></article>
+<article class="card l9" id="s50386-I"><div class="top"><span class="stock">50386-I</span><span class="lot l9">Lot 9</span></div><div class="meta">2015 Kia Sorento · Silver</div><div class="meta">113,199 mi · purchased 2026-06-08</div><div class="meta vin">VIN (last 6): 636211</div></article>
+<article class="card l9" id="s52171"><div class="top"><span class="stock">52171</span><span class="lot l9">Lot 9</span></div><div class="meta">2016 Mazda Mazda3 · Black</div><div class="meta">143,585 mi · purchased 2026-09-08</div><div class="meta vin">VIN (last 6): 275241</div></article>
+<article class="card l9" id="s52140"><div class="top"><span class="stock">52140</span><span class="lot l9">Lot 9</span></div><div class="meta">2017 Mitsubishi Mirage · Grey</div><div class="meta">122,463 mi · purchased 2026-08-24</div><div class="meta vin">VIN (last 6): 008682</div></article>
+<article class="card l9" id="s49945"><div class="top"><span class="stock">49945</span><span class="lot l9">Lot 9</span></div><div class="meta">2019 Nissan Altima · Silver</div><div class="meta">121,601 mi · purchased 2026-06-03</div><div class="meta vin">VIN (last 6): 157714</div><div class="warn">Printout showed 120 days beside this stock</div></article>
+<article class="card l9" id="s50401"><div class="top"><span class="stock">50401</span><span class="lot l9">Lot 9</span></div><div class="meta">2020 Nissan Altima · White</div><div class="meta">151,718 mi · purchased 2026-06-16</div><div class="meta vin">VIN (last 6): 230076</div></article>
+<article class="card l9" id="s52126"><div class="top"><span class="stock">52126</span><span class="lot l9">Lot 9</span></div><div class="meta">2019 Nissan Altima</div><div class="meta">168,991 mi · purchased 2026-08-18</div><div class="meta vin">VIN (last 6): 246731</div><div class="warn">Color not readable on 10/01 photo</div></article>
+<article class="card l9" id="s52187"><div class="top"><span class="stock">52187</span><span class="lot l9">Lot 9</span></div><div class="meta">2015 Nissan Altima · Grey</div><div class="meta">193,852 mi · purchased 2026-09-11</div><div class="meta vin">VIN (last 6): 478351</div></article></section><section class="lot-section" id="static-lot-12"><h2 class="lot-head lot-head-12">Lot 12 · 30 cars</h2><article class="card l12" id="s52167"><div class="top"><span class="stock">52167</span><span class="lot l12">Lot 12</span></div><div class="meta">2014 Buick Enclave · Gold</div><div class="meta">104,872 mi · purchased 2026-09-08</div><div class="meta vin">VIN (last 6): 188593</div></article>
+<article class="card l12" id="s52825"><div class="top"><span class="stock">52825</span><span class="lot l12">Lot 12</span></div><div class="meta">2015 Cadillac SRX · White</div><div class="meta">102,007 mi · purchased 2026-09-18</div><div class="meta vin">VIN (last 6): 631534</div></article>
+<article class="card l12" id="s52221"><div class="top"><span class="stock">52221</span><span class="lot l12">Lot 12</span></div><div class="meta">2010 Chevrolet Camaro · Black</div><div class="meta">118,081 mi · purchased 2026-09-29</div><div class="meta vin">VIN (last 6): 172408</div></article>
+<article class="card l12" id="s52212"><div class="top"><span class="stock">52212</span><span class="lot l12">Lot 12</span></div><div class="meta">2017 Chevrolet Equinox · Blue</div><div class="meta">127,431 mi · purchased 2026-09-28</div><div class="meta vin">VIN (last 6): 520653</div></article>
+<article class="card l12" id="s48601-ARB"><div class="top"><span class="stock">48601-ARB</span><span class="lot l12">Lot 12</span></div><div class="meta">2021 Chevrolet Malibu · Grey</div><div class="meta">123,242 mi · purchased 2026-01-07</div><div class="meta vin">VIN (last 6): 033920</div></article>
+<article class="card l12" id="s52197"><div class="top"><span class="stock">52197</span><span class="lot l12">Lot 12</span></div><div class="meta">2014 Chevrolet Malibu · Gold</div><div class="meta">168,888 mi · purchased 2026-09-17</div><div class="meta vin">VIN (last 6): 303874</div></article>
+<article class="card l12" id="s52210"><div class="top"><span class="stock">52210</span><span class="lot l12">Lot 12</span></div><div class="meta">2015 Chevrolet Malibu · Gold</div><div class="meta">144,500 mi · purchased 2026-09-28</div><div class="meta vin">VIN (last 6): 345988</div></article>
+<article class="card l12" id="s51589"><div class="top"><span class="stock">51589</span><span class="lot l12">Lot 12</span></div><div class="meta">2015 Chevrolet Sonic · Blue</div><div class="meta">63,855 mi · purchased 2026-07-17</div><div class="meta vin">VIN (last 6): 139822</div></article>
+<article class="card l12" id="s52413"><div class="top"><span class="stock">52413</span><span class="lot l12">Lot 12</span></div><div class="meta">2014 Chrysler 300 · Grey</div><div class="meta">59,583 mi · purchased 2026-08-25</div><div class="meta vin">VIN (last 6): 202951</div></article>
+<article class="card l12" id="s52219"><div class="top"><span class="stock">52219</span><span class="lot l12">Lot 12</span></div><div class="meta">2019 Dodge Journey · Red</div><div class="meta">166,593 mi · purchased 2026-09-29</div><div class="meta vin">VIN (last 6): 805183</div></article>
+<article class="card l12" id="s52841"><div class="top"><span class="stock">52841</span><span class="lot l12">Lot 12</span></div><div class="meta">2016 Ford Fusion · Grey</div><div class="meta">106,413 mi · purchased 2026-09-22</div><div class="meta vin">VIN (last 6): 205849</div></article>
+<article class="card l12" id="s52617"><div class="top"><span class="stock">52617</span><span class="lot l12">Lot 12</span></div><div class="meta">2015 Ford Taurus · Grey</div><div class="meta">120,491 mi · purchased 2026-09-04</div><div class="meta vin">VIN (last 6): 170783</div></article>
+<article class="card l12" id="s52616"><div class="top"><span class="stock">52616</span><span class="lot l12">Lot 12</span></div><div class="meta">2012 Honda Accord</div><div class="meta">144,635 mi · purchased 2026-09-04</div><div class="meta vin">VIN (last 6): 122111</div><div class="warn">Color not readable on 10/01 photo</div></article>
+<article class="card l12" id="s52757"><div class="top"><span class="stock">52757</span><span class="lot l12">Lot 12</span></div><div class="meta">2010 Honda CR-V · Silver</div><div class="meta">166,164 mi · purchased 2026-09-09</div><div class="meta vin">VIN (last 6): 009383</div></article>
+<article class="card l12" id="s52175"><div class="top"><span class="stock">52175</span><span class="lot l12">Lot 12</span></div><div class="meta">2017 Hyundai Accent · Silver</div><div class="meta">109,698 mi · purchased 2026-09-09</div><div class="meta vin">VIN (last 6): 289342</div></article>
+<article class="card l12" id="s52220"><div class="top"><span class="stock">52220</span><span class="lot l12">Lot 12</span></div><div class="meta">2020 Hyundai Elantra · Grey</div><div class="meta">81,930 mi · purchased 2026-09-29</div><div class="meta vin">VIN (last 6): 573317</div></article>
+<article class="card l12" id="s52214"><div class="top"><span class="stock">52214</span><span class="lot l12">Lot 12</span></div><div class="meta">2018 Jeep Renegade · Grey</div><div class="meta">129,184 mi · purchased 2026-09-28</div><div class="meta vin">VIN (last 6): 133041</div><div class="warn">VIN last-6 may be 133041 or J33041</div></article>
+<article class="card l12" id="s51340"><div class="top"><span class="stock">51340</span><span class="lot l12">Lot 12</span></div><div class="meta">2021 Kia Forte · Silver</div><div class="meta">104,367 mi · purchased 2026-07-03</div><div class="meta vin">VIN (last 6): 305705</div></article>
+<article class="card l12" id="s51709"><div class="top"><span class="stock">51709</span><span class="lot l12">Lot 12</span></div><div class="meta">2021 Kia Forte · Grey</div><div class="meta">126,888 mi · purchased 2026-07-21</div><div class="meta vin">VIN (last 6): 291060</div></article>
+<article class="card l12" id="s52216"><div class="top"><span class="stock">52216</span><span class="lot l12">Lot 12</span></div><div class="meta">2017 Kia Sorento · Grey</div><div class="meta">192,100 mi · purchased 2026-09-29</div><div class="meta vin">VIN (last 6): 292675</div></article>
+<article class="card l12" id="s52844"><div class="top"><span class="stock">52844</span><span class="lot l12">Lot 12</span></div><div class="meta">2010 Lincoln MKS · Blue</div><div class="meta">106,295 mi · purchased 2026-09-22</div><div class="meta vin">VIN (last 6): 613019</div></article>
+<article class="card l12" id="s52217"><div class="top"><span class="stock">52217</span><span class="lot l12">Lot 12</span></div><div class="meta">2008 Lincoln MKZ · Grey</div><div class="meta">58,703 mi · purchased 2026-09-29</div><div class="meta vin">VIN (last 6): 629386</div></article>
+<article class="card l12" id="s52901"><div class="top"><span class="stock">52901</span><span class="lot l12">Lot 12</span></div><div class="meta">2014 Lincoln MKZ · Gold</div><div class="meta">138,238 mi · purchased 2026-09-29</div><div class="meta vin">VIN (last 6): 829942</div></article>
+<article class="card l12" id="s52084"><div class="top"><span class="stock">52084</span><span class="lot l12">Lot 12</span></div><div class="meta">2009 Mini Cooper · Blue</div><div class="meta">76,063 mi · purchased 2026-08-11</div><div class="meta vin">VIN (last 6): W76657</div><div class="warn">VIN partial printed as W76657</div></article>
+<article class="card l12" id="s51916"><div class="top"><span class="stock">51916</span><span class="lot l12">Lot 12</span></div><div class="meta">2018 Nissan Altima · Red</div><div class="meta">110,185 mi · purchased 2026-08-04</div><div class="meta vin">VIN (last 6): 267254</div></article>
+<article class="card l12" id="s52209"><div class="top"><span class="stock">52209</span><span class="lot l12">Lot 12</span></div><div class="meta">2018 Nissan Altima · Grey</div><div class="meta">107,966 mi · purchased 2026-09-28</div><div class="meta vin">VIN (last 6): 162680</div></article>
+<article class="card l12" id="s52206"><div class="top"><span class="stock">52206</span><span class="lot l12">Lot 12</span></div><div class="meta">2017 Nissan Sentra · White</div><div class="meta">116,250 mi · purchased 2026-09-21</div><div class="meta vin">VIN (last 6): 294079</div></article>
+<article class="card l12" id="s52205"><div class="top"><span class="stock">52205</span><span class="lot l12">Lot 12</span></div><div class="meta">2018 Ram 1500 · White</div><div class="meta">140,267 mi · purchased 2026-09-21</div><div class="meta vin">VIN (last 6): 114328</div></article>
+<article class="card l12" id="s52218"><div class="top"><span class="stock">52218</span><span class="lot l12">Lot 12</span></div><div class="meta">2012 Toyota Camry · Silver</div><div class="meta">135,678 mi · purchased 2026-09-29</div><div class="meta vin">VIN (last 6): 101937</div></article>
+<article class="card l12" id="s52802"><div class="top"><span class="stock">52802</span><span class="lot l12">Lot 12</span></div><div class="meta">2015 Toyota Corolla · White</div><div class="meta">157,367 mi · purchased 2026-09-16</div><div class="meta vin">VIN (last 6): 276785</div></article></section>
+  </div>
+  <div id="live-root" hidden>
+    <div class="counts" id="counts"></div>
+    <div class="match-counts" id="matchCounts"></div>
+    <div id="list"></div>
+  </div>
+</main>
+<div class="bar" id="bar" hidden>
+  <button type="button" id="add">Add car</button>
+  <button type="button" id="export">Export CSV</button>
+  <button type="button" class="primary" id="copy">Copy for Grok</button>
+</div>
+<dialog id="dlg">
+  <form id="form">
+    <strong id="dlgTitle">Car</strong>
+    <label>Lot</label>
+    <select name="lot"><option value="9">9</option><option value="12">12</option></select>
+    <label>Stock #</label>
+    <input name="stock" required>
+    <label>Year / make / model</label>
+    <div class="row">
+      <input name="year" inputmode="numeric" placeholder="Year">
+      <input name="make" placeholder="Make">
+      <input name="model" placeholder="Model">
+    </div>
+    <label>Color</label>
+    <input name="color">
+    <label>VIN (last 6)</label>
+    <input name="vin" maxlength="6" placeholder="Last 6">
+    <label>What is wrong</label>
+    <textarea name="issues" placeholder="Battery dead, AC weak, driver fender dented"></textarea>
+    <label>Status</label>
+    <select name="status"><option>On lot</option><option>Sold</option><option>Moved</option><option>Wholesale</option></select>
+    <label>Photo</label>
+    <input name="photo" type="file" accept="image/*" capture="environment">
+    <img class="photo" id="preview" alt="">
+    <p class="warn">A photo does not identify the car by itself. Confirm stock or year/make/model before saving.</p>
+    <div class="row" style="margin-top:12px">
+      <button type="button" id="cancel">Cancel</button>
+      <button class="primary" type="submit">Save</button>
+    </div>
+  </form>
+</dialog>
+<dialog id="copyDlg">
+  <strong>Copy for Grok</strong>
+  <p class="sub" id="copyMsg"></p>
+  <pre class="copy-fallback" id="copyText"></pre>
+  <div class="row" style="margin-top:12px">
+    <button type="button" id="copyClose">Close</button>
+  </div>
+</dialog>
+<script>
+(function () {
+"use strict";
+
+const SEED = [{"stock":"48601-ARB","lot":"12","year":"2021","make":"Chevrolet","model":"Malibu","color":"Grey","vin":"033920","miles":123242,"purchased":"2026-01-07","price":0,"issues":"","status":"On lot","flag":""},{"stock":"51340","lot":"12","year":"2021","make":"Kia","model":"Forte","color":"Silver","vin":"305705","miles":104367,"purchased":"2026-07-03","price":15995,"issues":"","status":"On lot","flag":""},{"stock":"51589","lot":"12","year":"2015","make":"Chevrolet","model":"Sonic","color":"Blue","vin":"139822","miles":63855,"purchased":"2026-07-17","price":0,"issues":"","status":"On lot","flag":""},{"stock":"51709","lot":"12","year":"2021","make":"Kia","model":"Forte","color":"Grey","vin":"291060","miles":126888,"purchased":"2026-07-21","price":15995,"issues":"","status":"On lot","flag":""},{"stock":"51916","lot":"12","year":"2018","make":"Nissan","model":"Altima","color":"Red","vin":"267254","miles":110185,"purchased":"2026-08-04","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52084","lot":"12","year":"2009","make":"Mini","model":"Cooper","color":"Blue","vin":"W76657","miles":76063,"purchased":"2026-08-11","price":0,"issues":"","status":"On lot","flag":"VIN partial printed as W76657"},{"stock":"52413","lot":"12","year":"2014","make":"Chrysler","model":"300","color":"Grey","vin":"202951","miles":59583,"purchased":"2026-08-25","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52616","lot":"12","year":"2012","make":"Honda","model":"Accord","color":"","vin":"122111","miles":144635,"purchased":"2026-09-04","price":0,"issues":"","status":"On lot","flag":"Color not readable on 10/01 photo"},{"stock":"52617","lot":"12","year":"2015","make":"Ford","model":"Taurus","color":"Grey","vin":"170783","miles":120491,"purchased":"2026-09-04","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52167","lot":"12","year":"2014","make":"Buick","model":"Enclave","color":"Gold","vin":"188593","miles":104872,"purchased":"2026-09-08","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52175","lot":"12","year":"2017","make":"Hyundai","model":"Accent","color":"Silver","vin":"289342","miles":109698,"purchased":"2026-09-09","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52757","lot":"12","year":"2010","make":"Honda","model":"CR-V","color":"Silver","vin":"009383","miles":166164,"purchased":"2026-09-09","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52802","lot":"12","year":"2015","make":"Toyota","model":"Corolla","color":"White","vin":"276785","miles":157367,"purchased":"2026-09-16","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52197","lot":"12","year":"2014","make":"Chevrolet","model":"Malibu","color":"Gold","vin":"303874","miles":168888,"purchased":"2026-09-17","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52825","lot":"12","year":"2015","make":"Cadillac","model":"SRX","color":"White","vin":"631534","miles":102007,"purchased":"2026-09-18","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52205","lot":"12","year":"2018","make":"Ram","model":"1500","color":"White","vin":"114328","miles":140267,"purchased":"2026-09-21","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52206","lot":"12","year":"2017","make":"Nissan","model":"Sentra","color":"White","vin":"294079","miles":116250,"purchased":"2026-09-21","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52844","lot":"12","year":"2010","make":"Lincoln","model":"MKS","color":"Blue","vin":"613019","miles":106295,"purchased":"2026-09-22","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52841","lot":"12","year":"2016","make":"Ford","model":"Fusion","color":"Grey","vin":"205849","miles":106413,"purchased":"2026-09-22","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52209","lot":"12","year":"2018","make":"Nissan","model":"Altima","color":"Grey","vin":"162680","miles":107966,"purchased":"2026-09-28","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52210","lot":"12","year":"2015","make":"Chevrolet","model":"Malibu","color":"Gold","vin":"345988","miles":144500,"purchased":"2026-09-28","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52212","lot":"12","year":"2017","make":"Chevrolet","model":"Equinox","color":"Blue","vin":"520653","miles":127431,"purchased":"2026-09-28","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52214","lot":"12","year":"2018","make":"Jeep","model":"Renegade","color":"Grey","vin":"133041","miles":129184,"purchased":"2026-09-28","price":0,"issues":"","status":"On lot","flag":"VIN last-6 may be 133041 or J33041"},{"stock":"52901","lot":"12","year":"2014","make":"Lincoln","model":"MKZ","color":"Gold","vin":"829942","miles":138238,"purchased":"2026-09-29","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52216","lot":"12","year":"2017","make":"Kia","model":"Sorento","color":"Grey","vin":"292675","miles":192100,"purchased":"2026-09-29","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52217","lot":"12","year":"2008","make":"Lincoln","model":"MKZ","color":"Grey","vin":"629386","miles":58703,"purchased":"2026-09-29","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52218","lot":"12","year":"2012","make":"Toyota","model":"Camry","color":"Silver","vin":"101937","miles":135678,"purchased":"2026-09-29","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52219","lot":"12","year":"2019","make":"Dodge","model":"Journey","color":"Red","vin":"805183","miles":166593,"purchased":"2026-09-29","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52220","lot":"12","year":"2020","make":"Hyundai","model":"Elantra","color":"Grey","vin":"573317","miles":81930,"purchased":"2026-09-29","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52221","lot":"12","year":"2010","make":"Chevrolet","model":"Camaro","color":"Black","vin":"172408","miles":118081,"purchased":"2026-09-29","price":0,"issues":"","status":"On lot","flag":""},{"stock":"49945","lot":"9","year":"2019","make":"Nissan","model":"Altima","color":"Silver","vin":"157714","miles":121601,"purchased":"2026-06-03","price":0,"issues":"","status":"On lot","flag":"Printout showed 120 days beside this stock"},{"stock":"50386-I","lot":"9","year":"2015","make":"Kia","model":"Sorento","color":"Silver","vin":"636211","miles":113199,"purchased":"2026-06-08","price":0,"issues":"","status":"On lot","flag":""},{"stock":"50401","lot":"9","year":"2020","make":"Nissan","model":"Altima","color":"White","vin":"230076","miles":151718,"purchased":"2026-06-16","price":0,"issues":"","status":"On lot","flag":""},{"stock":"51210-I","lot":"9","year":"2012","make":"Ford","model":"Fusion","color":"Grey","vin":"147813","miles":114130,"purchased":"2026-07-18","price":0,"issues":"","status":"On lot","flag":""},{"stock":"51256","lot":"9","year":"2017","make":"Chevrolet","model":"Traverse","color":"","vin":"292243","miles":143386,"purchased":"2026-08-07","price":0,"issues":"","status":"On lot","flag":"Color not readable on 10/01 photo"},{"stock":"51266","lot":"9","year":"2020","make":"Hyundai","model":"Elantra","color":"Black","vin":"570682","miles":99609,"purchased":"2026-08-11","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52126","lot":"9","year":"2019","make":"Nissan","model":"Altima","color":"","vin":"246731","miles":168991,"purchased":"2026-08-18","price":0,"issues":"","status":"On lot","flag":"Color not readable on 10/01 photo"},{"stock":"52145","lot":"9","year":"2016","make":"Buick","model":"Enclave","color":"White","vin":"251039","miles":135787,"purchased":"2026-08-24","price":0,"issues":"Needs a water pump. AutoZone says it will be here 10/15/2026.","status":"On lot","updated":"2026-10-04","flag":""},{"stock":"52140","lot":"9","year":"2017","make":"Mitsubishi","model":"Mirage","color":"Grey","vin":"008682","miles":122463,"purchased":"2026-08-24","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52171","lot":"9","year":"2016","make":"Mazda","model":"Mazda3","color":"Black","vin":"275241","miles":143585,"purchased":"2026-09-08","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52185-I","lot":"9","year":"2015","make":"Chevrolet","model":"Malibu","color":"Silver","vin":"233668","miles":111465,"purchased":"2026-09-10","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52189-I","lot":"9","year":"2019","make":"Dodge","model":"Journey","color":"Silver","vin":"803406","miles":171311,"purchased":"2026-09-11","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52187","lot":"9","year":"2015","make":"Nissan","model":"Altima","color":"Grey","vin":"478351","miles":193852,"purchased":"2026-09-11","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52192","lot":"9","year":"2015","make":"Dodge","model":"Journey","color":"Grey","vin":"944642","miles":174606,"purchased":"2026-09-14","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52198","lot":"9","year":"2015","make":"Jeep","model":"Grand Cherokee","color":"White","vin":"C03594","miles":170530,"purchased":"2026-09-17","price":0,"issues":"","status":"On lot","flag":"VIN partial printed oddly as C03594 \u2014 verify"},{"stock":"52202","lot":"9","year":"2013","make":"Ford","model":"Explorer","color":"White","vin":"382784","miles":140895,"purchased":"2026-09-21","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52204-I","lot":"9","year":"2016","make":"Dodge","model":"Grand Caravan","color":"Black","vin":"120245","miles":144804,"purchased":"2026-09-21","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52208","lot":"9","year":"2015","make":"Chevrolet","model":"Equinox","color":"","vin":"613604","miles":126461,"purchased":"2026-09-28","price":0,"issues":"","status":"On lot","flag":"Color not readable on 10/01 photo"},{"stock":"52213","lot":"9","year":"2017","make":"Dodge","model":"Journey","color":"Grey","vin":"516597","miles":134755,"purchased":"2026-09-28","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52211-I","lot":"9","year":"2015","make":"Hyundai","model":"Sonata","color":"Red","vin":"241021","miles":151603,"purchased":"2026-09-28","price":0,"issues":"","status":"On lot","flag":""},{"stock":"52200","lot":"9","year":"2012","make":"Jeep","model":"Grand Cherokee","color":"","vin":"305496","miles":198150,"purchased":"2026-09-29","price":0,"issues":"","status":"On lot","flag":"Color not readable on 10/01 photo"},{"stock":"52902-I","lot":"9","year":"2015","make":"Dodge","model":"Charger","color":"","vin":"500929","miles":149741,"purchased":"2026-09-30","price":0,"issues":"","status":"On lot","flag":"Color not readable on 10/01 photo"}];
+const KEY = "davids-lots-v2";
+const OLD_KEY = "davids-lots-v1";
+const TRACKED = ["lot","year","make","model","color","vin","miles","purchased","price","issues","status","flag","photo"];
+
+let store = { overrides: {}, added: [] };
+let filter = "all";
+let editing = null; // stock string or null for new
+const $ = (id) => document.getElementById(id);
+
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, (ch) => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[ch]);
+}
+
+function stripId(s) {
+  return String(s || "").toLowerCase().replace(/[-\s]/g, "");
+}
+
+function today() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function seedByStock() {
+  const m = Object.create(null);
+  for (const c of SEED) m[c.stock] = c;
+  return m;
+}
+
+function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
+
+function diffAgainstSeed(car, seed) {
+  if (!seed) return deepClone(car);
+  const o = {};
+  for (const k of TRACKED) {
+    const a = car[k] ?? "";
+    const b = seed[k] ?? "";
+    if (String(a) !== String(b)) o[k] = car[k];
+  }
+  if (car.updated) o.updated = car.updated;
+  return o;
+}
+
+function migrateFromV1() {
+  try {
+    const raw = localStorage.getItem(OLD_KEY);
+    if (!raw) return null;
+    const cars = JSON.parse(raw);
+    if (!Array.isArray(cars)) return null;
+    const bySeed = seedByStock();
+    const overrides = {};
+    const added = [];
+    const seedStocks = new Set(SEED.map(c => c.stock));
+    for (const c of cars) {
+      if (!c || !c.stock) continue;
+      if (!seedStocks.has(c.stock)) {
+        added.push(c);
+        continue;
+      }
+      const d = diffAgainstSeed(c, bySeed[c.stock]);
+      if (Object.keys(d).length) overrides[c.stock] = d;
+    }
+    return { overrides, added };
+  } catch (e) {
+    return null;
+  }
+}
+
+function loadStore() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object" && parsed.overrides) {
+        store = { overrides: parsed.overrides || {}, added: parsed.added || [] };
+        return;
+      }
+    }
+  } catch (e) {}
+  const migrated = migrateFromV1();
+  if (migrated) {
+    store = migrated;
+    saveStore();
+    try { localStorage.removeItem(OLD_KEY); } catch (e) {}
+  } else {
+    store = { overrides: {}, added: [] };
+  }
+}
+
+function saveStore() {
+  localStorage.setItem(KEY, JSON.stringify(store));
+}
+
+function mergeCars() {
+  const bySeed = seedByStock();
+  const out = SEED.map(c => {
+    const o = store.overrides[c.stock];
+    return o ? Object.assign({}, c, o) : Object.assign({}, c);
+  });
+  for (const a of store.added) {
+    if (!bySeed[a.stock]) out.push(Object.assign({}, a));
+  }
+  return out;
+}
+
+function days(p) {
+  if (!p) return "";
+  const d = Math.floor((Date.now() - new Date(p + "T00:00:00")) / 86400000);
+  return Number.isFinite(d) ? d : "";
+}
+
+function sortWithin(a, b) {
+  return (a.make || "").localeCompare(b.make || "")
+    || (a.model || "").localeCompare(b.model || "")
+    || (a.stock || "").localeCompare(b.stock || "");
+}
+
+function tokensOf(q) {
+  return q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+}
+
+function matches(car, tokens) {
+  if (!tokens.length) return { ok: true, exact: false };
+  const stock = String(car.stock || "").toLowerCase();
+  const vin = String(car.vin || "").toLowerCase();
+  const stockS = stripId(car.stock);
+  const vinS = stripId(car.vin);
+  const fields = [
+    stock, vin,
+    String(car.year || "").toLowerCase(),
+    String(car.make || "").toLowerCase(),
+    String(car.model || "").toLowerCase(),
+    String(car.color || "").toLowerCase(),
+    String(car.issues || "").toLowerCase()
+  ];
+  const blob = fields.join(" ");
+  let exact = false;
+  for (const t of tokens) {
+    const tS = stripId(t);
+    const hit =
+      blob.includes(t) ||
+      (tS && (stockS.includes(tS) || vinS.includes(tS)));
+    if (!hit) return { ok: false, exact: false };
+    if (stock === t || vin === t || stockS === tS || vinS === tS) exact = true;
+  }
+  return { ok: true, exact };
+}
+
+function filteredList(cars, q) {
+  const tokens = tokensOf(q);
+  let list = cars.filter(c => {
+    if (filter === "issues") return !!c.issues && c.status === "On lot";
+    if (filter === "9" || filter === "12") {
+      if (c.lot !== filter) return false;
+      if (c.status !== "On lot") return false;
+    }
+    // "all" shows everything including non-on-lot? Keep prior: all shows on-lot mainly but also others
+    // Spec: tabs All / Lot 9 / Lot 12 / Issues — Lot tabs only that lot on-lot
+    if (filter === "all" && c.status !== "On lot") return false;
+    return matches(c, tokens).ok;
+  });
+  list = list.map(c => ({ c, exact: matches(c, tokens).exact }));
+  list.sort((a, b) => {
+    if (a.exact !== b.exact) return a.exact ? -1 : 1;
+    if (a.c.lot !== b.c.lot) return Number(a.c.lot) - Number(b.c.lot);
+    return sortWithin(a.c, b.c);
+  });
+  return list.map(x => x.c);
+}
+
+function cardHTML(c) {
+  const lotCls = c.lot === "12" ? "l12" : "l9";
+  const has = c.issues ? " has" : "";
+  const color = c.color ? " · " + esc(c.color) : "";
+  const mi = c.miles ? Number(c.miles).toLocaleString() + " mi · " : "";
+  const d = days(c.purchased);
+  const dayStr = d !== "" ? " · " + d + " days" : "";
+  const purchased = c.purchased || "no purchase date";
+  return `<article class="card ${lotCls}${has}" data-stock="${esc(c.stock)}">
+    <div class="top"><span class="stock">${esc(c.stock)}</span><span class="lot ${lotCls}">Lot ${esc(c.lot)}</span></div>
+    <div class="meta">${esc(c.year)} ${esc(c.make)} ${esc(c.model)}${color}</div>
+    <div class="meta">${mi}${esc(purchased)}${dayStr}</div>
+    <div class="meta vin">VIN (last 6): ${esc(c.vin || "—")}</div>
+    ${c.issues ? `<div class="issue">${esc(c.issues)}</div>` : ""}
+    ${c.flag ? `<div class="warn">${esc(c.flag)}</div>` : ""}
+    ${c.status && c.status !== "On lot" ? `<div class="warn">Status: ${esc(c.status)}</div>` : ""}
+    <div class="actions">
+      <button type="button" data-edit="${esc(c.stock)}">Issue / photo</button>
+      <button type="button" data-move="${esc(c.stock)}">Move lot</button>
+    </div>
+  </article>`;
+}
+
+function renderSections(list, q) {
+  const tokens = tokensOf(q);
+  const searching = tokens.length > 0;
+  if (filter === "all") {
+    const g9 = list.filter(c => c.lot === "9");
+    const g12 = list.filter(c => c.lot === "12");
+    let html = "";
+    if (searching) {
+      $("matchCounts").textContent = `Matches: Lot 9 · ${g9.length}, Lot 12 · ${g12.length} (total ${list.length})`;
+    } else {
+      $("matchCounts").textContent = "";
+    }
+    html += `<section class="lot-section" id="live-lot-9"><h2 class="lot-head lot-head-9">Lot 9 · ${g9.length} cars</h2>`;
+    html += g9.length ? g9.map(cardHTML).join("") : `<p class="sub">No cars on Lot 9 match.</p>`;
+    html += `</section>`;
+    html += `<section class="lot-section" id="live-lot-12"><h2 class="lot-head lot-head-12">Lot 12 · ${g12.length} cars</h2>`;
+    html += g12.length ? g12.map(cardHTML).join("") : `<p class="sub">No cars on Lot 12 match.</p>`;
+    html += `</section>`;
+    return html;
+  }
+  if (searching) {
+    const n9 = list.filter(c => c.lot === "9").length;
+    const n12 = list.filter(c => c.lot === "12").length;
+    $("matchCounts").textContent = `Matches: Lot 9 · ${n9}, Lot 12 · ${n12} (showing ${list.length})`;
+  } else {
+    $("matchCounts").textContent = "";
+  }
+  if (!list.length) return `<p class="sub">No cars match.</p>`;
+  // single lot or issues — still group by lot if mixed (issues can span both)
+  if (filter === "issues") {
+    const g9 = list.filter(c => c.lot === "9").sort(sortWithin);
+    const g12 = list.filter(c => c.lot === "12").sort(sortWithin);
+    let html = "";
+    if (g9.length) {
+      html += `<section class="lot-section"><h2 class="lot-head lot-head-9">Lot 9 · ${g9.length} cars</h2>${g9.map(cardHTML).join("")}</section>`;
+    }
+    if (g12.length) {
+      html += `<section class="lot-section"><h2 class="lot-head lot-head-12">Lot 12 · ${g12.length} cars</h2>${g12.map(cardHTML).join("")}</section>`;
+    }
+    return html || `<p class="sub">No cars match.</p>`;
+  }
+  return list.map(cardHTML).join("");
+}
+
+function show() {
+  const cars = mergeCars();
+  const q = $("q").value;
+  const on = cars.filter(c => c.status === "On lot");
+  $("counts").innerHTML = [
+    [on.length, "On lot"],
+    [on.filter(c => c.lot === "9").length, "Lot 9"],
+    [on.filter(c => c.lot === "12").length, "Lot 12"],
+    [on.filter(c => c.issues).length, "Issues"]
+  ].map(([n, l]) => `<div><b>${n}</b><span>${l}</span></div>`).join("");
+  const list = filteredList(cars, q);
+  $("list").innerHTML = renderSections(list, q);
+}
+
+function findMerged(stock) {
+  return mergeCars().find(x => x.stock === stock);
+}
+
+function openEdit(stock) {
+  editing = stock || null;
+  const c = stock ? findMerged(stock) : { lot: filter === "12" ? "12" : "9", status: "On lot" };
+  if (stock && !c) return;
+  $("dlgTitle").textContent = stock || "New car";
+  const f = $("form");
+  f.lot.value = c.lot || "9";
+  f.stock.value = c.stock || "";
+  f.stock.readOnly = !!stock;
+  f.year.value = c.year || "";
+  f.make.value = c.make || "";
+  f.model.value = c.model || "";
+  f.color.value = c.color || "";
+  f.vin.value = c.vin || "";
+  f.issues.value = c.issues || "";
+  f.status.value = c.status || "On lot";
+  $("preview").style.display = c.photo ? "block" : "none";
+  $("preview").src = c.photo || "";
+  delete $("preview").dataset.pending;
+  $("dlg").showModal();
+}
+
+function persistCar(car, isNew) {
+  const bySeed = seedByStock();
+  if (isNew || !bySeed[car.stock]) {
+    const idx = store.added.findIndex(x => x.stock === car.stock);
+    if (idx >= 0) store.added[idx] = car;
+    else store.added.push(car);
+    // if somehow overriding a seed stock via rename — handled by stock readOnly on edit
+  } else {
+    const d = diffAgainstSeed(car, bySeed[car.stock]);
+    if (Object.keys(d).length) store.overrides[car.stock] = d;
+    else delete store.overrides[car.stock];
+  }
+  saveStore();
+}
+
+function changesText() {
+  const bySeed = seedByStock();
+  const lines = [];
+  const cars = mergeCars();
+  for (const c of cars) {
+    const seed = bySeed[c.stock];
+    if (!seed) {
+      lines.push(`ADDED: Lot ${c.lot} stock ${c.stock} ${c.year} ${c.make} ${c.model}` +
+        (c.color ? ` ${c.color}` : "") +
+        (c.issues ? ` — issues: ${c.issues}` : "") +
+        (c.status && c.status !== "On lot" ? ` — status: ${c.status}` : ""));
+      continue;
+    }
+    const changes = [];
+    if (String(c.lot) !== String(seed.lot)) changes.push(`lot ${seed.lot}→${c.lot}`);
+    if (String(c.status || "On lot") !== String(seed.status || "On lot")) changes.push(`status ${seed.status || "On lot"}→${c.status}`);
+    if (String(c.issues || "") !== String(seed.issues || "")) changes.push(`issues: ${c.issues || "(cleared)"}`);
+    if (String(c.color || "") !== String(seed.color || "")) changes.push(`color ${seed.color || "(blank)"}→${c.color || "(blank)"}`);
+    if (String(c.vin || "") !== String(seed.vin || "")) changes.push(`vin ${seed.vin}→${c.vin}`);
+    if (String(c.year || "") !== String(seed.year || "") ||
+        String(c.make || "") !== String(seed.make || "") ||
+        String(c.model || "") !== String(seed.model || "")) {
+      changes.push(`ymm ${seed.year} ${seed.make} ${seed.model}→${c.year} ${c.make} ${c.model}`);
+    }
+    if (c.photo && c.photo !== seed.photo) changes.push("photo added/updated");
+    if (changes.length) {
+      lines.push(`CHANGED: stock ${c.stock} ${c.year} ${c.make} ${c.model} — ${changes.join("; ")}`);
+    }
+  }
+  // removed? we don't support delete of seed cars
+  if (!lines.length) return "No local changes vs SEED.";
+  return "Local changes vs SEED (paste to Grok to update master):\n" + lines.join("\n");
+}
+
+// Activate live UI
+loadStore();
+$("static-root").classList.add("hidden");
+$("static-root").hidden = true;
+$("live-root").hidden = false;
+$("bar").hidden = false;
+
+$("list").addEventListener("click", (e) => {
+  const edit = e.target.closest("[data-edit]");
+  const move = e.target.closest("[data-move]");
+  if (edit) {
+    openEdit(edit.getAttribute("data-edit"));
+    return;
+  }
+  if (move) {
+    const stock = move.getAttribute("data-move");
+    const c = findMerged(stock);
+    if (!c) return;
+    const next = c.lot === "9" ? "12" : "9";
+    if (!confirm(`Move stock ${c.stock} from Lot ${c.lot} to Lot ${next}?`)) return;
+    const updated = Object.assign({}, c, { lot: next, updated: today() });
+    persistCar(updated, !seedByStock()[stock]);
+    show();
+  }
+});
+
+document.querySelectorAll("#tabs button").forEach(b => {
+  b.addEventListener("click", () => {
+    document.querySelectorAll("#tabs button").forEach(x => x.classList.remove("on"));
+    b.classList.add("on");
+    filter = b.dataset.lot;
+    show();
+  });
+});
+
+$("q").addEventListener("input", show);
+$("add").onclick = () => openEdit("");
+$("cancel").onclick = () => $("dlg").close();
+$("copyClose").onclick = () => $("copyDlg").close();
+
+$("form").photo.addEventListener("change", () => {
+  const file = $("form").photo.files[0];
+  if (!file) return;
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+  img.onload = () => {
+    const scale = Math.min(1, 900 / Math.max(img.width, img.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(img.width * scale);
+    canvas.height = Math.round(img.height * scale);
+    canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+    const data = canvas.toDataURL("image/jpeg", 0.7);
+    $("preview").src = data;
+    $("preview").style.display = "block";
+    $("preview").dataset.pending = data;
+    URL.revokeObjectURL(url);
+  };
+  img.src = url;
+});
+
+$("form").onsubmit = (e) => {
+  e.preventDefault();
+  const f = new FormData(e.target);
+  const stock = String(f.get("stock")).trim();
+  if (!stock) return;
+  const isNew = !editing;
+  const existing = findMerged(editing || stock);
+  const bySeed = seedByStock();
+  let base = existing ? Object.assign({}, existing) : {
+    miles: "", purchased: today(), price: 0, flag: "", photo: ""
+  };
+  if (isNew && bySeed[stock]) {
+    alert("That stock # already exists in the seed list. Edit it instead.");
+    return;
+  }
+  if (isNew && store.added.some(x => x.stock === stock)) {
+    alert("That stock # was already added locally.");
+    return;
+  }
+  base.stock = stock;
+  base.lot = String(f.get("lot"));
+  base.year = String(f.get("year") || "").trim();
+  base.make = String(f.get("make") || "").trim();
+  base.model = String(f.get("model") || "").trim();
+  base.color = String(f.get("color") || "").trim();
+  base.vin = String(f.get("vin") || "").trim();
+  base.issues = String(f.get("issues") || "").trim();
+  base.status = String(f.get("status") || "On lot");
+  base.updated = today();
+  if ($("preview").dataset.pending) base.photo = $("preview").dataset.pending;
+  persistCar(base, isNew || !bySeed[stock]);
+  $("dlg").close();
+  show();
+};
+
+function csv() {
+  const cols = ["stock","lot","year","make","model","color","vin","miles","purchased","price","issues","status","updated","flag"];
+  const cars = mergeCars();
+  const lines = [cols.join(",")].concat(cars.map(c =>
+    cols.map(k => `"${String(c[k] ?? "").replaceAll('"','""')}"`).join(",")
+  ));
+  const blob = new Blob([lines.join("\n")], { type: "text/csv" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "lot-9-and-12.csv";
+  a.click();
+}
+$("export").onclick = csv;
+
+$("copy").onclick = async () => {
+  const text = changesText();
+  try {
+    await navigator.clipboard.writeText(text);
+    $("copyMsg").textContent = "Copied to clipboard. Paste into the Grok chat.";
+    $("copyText").textContent = text;
+    $("copyDlg").showModal();
+  } catch (err) {
+    $("copyMsg").textContent = "Clipboard blocked — select and copy the text below.";
+    $("copyText").textContent = text;
+    $("copyDlg").showModal();
+  }
+};
+
+show();
+})();
+</script>
+</body>
+</html>

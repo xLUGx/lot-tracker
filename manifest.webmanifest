@@ -1,0 +1,17 @@
+{
+  "name": "Lot Tracker",
+  "short_name": "Lot Tracker",
+  "description": "David's Auto Sales \u2014 Lot 9 and Lot 12 inventory",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#12171c",
+  "theme_color": "#12171c",
+  "icons": [
+    {
+      "src": "lot-tracker-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

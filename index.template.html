@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lot Tracker">
+<link rel="apple-touch-icon" href="lot-tracker-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#12171c">
+<title>Lot Tracker</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg:#12171c; --card:#1c242c; --ink:#eef3f6; --muted:#9aabb6; --line:#2c3842;
+    --teal:#3dbeb6; --teal-deep:#1f6f6a; --blue:#3d5a80; --gold:#e2c27a; --amber:#e2b15a;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:var(--bg); color:var(--ink); }
+  header { position:sticky; top:0; z-index:2; background:#12171ce6; backdrop-filter:blur(8px); padding:12px 14px 8px; border-bottom:1px solid var(--line); }
+  h1 { font-size:18px; margin:0 0 2px; }
+  .sub { color:var(--muted); font-size:12px; margin:0 0 8px; }
+  .row { display:flex; gap:8px; }
+  input, select, textarea, button { font:inherit; color:var(--ink); background:#10161b; border:1px solid var(--line); border-radius:10px; padding:10px 12px; }
+  input, select { width:100%; }
+  button { background:#24303a; cursor:pointer; }
+  button.primary { background:var(--teal-deep); border-color:var(--teal-deep); font-weight:650; }
+  .tabs { display:flex; gap:6px; margin-top:8px; }
+  .tabs button { flex:1; }
+  .tabs button.on { background:var(--teal-deep); }
+  main { padding:12px 14px 96px; }
+  .counts { display:flex; gap:8px; margin:10px 0; }
+  .counts div { flex:1; background:var(--card); border-radius:10px; padding:8px; text-align:center; }
+  .counts b { display:block; font-size:20px; }
+  .counts span { color:var(--muted); font-size:12px; }
+  .match-counts { color:var(--muted); font-size:13px; margin:0 0 10px; min-height:1.2em; }
+  .lot-section { margin:0 0 18px; }
+  .lot-head { font-size:15px; margin:14px 0 8px; padding:8px 10px; border-radius:10px; background:#182028; border-left:4px solid var(--teal); }
+  .lot-head-12, .lot-head.lot-head-12 { border-left-color:var(--blue); }
+  article, .card { background:var(--card); border-radius:14px; padding:12px; margin:0 0 10px; border:1px solid transparent; border-left:4px solid var(--teal); }
+  article.l12, .card.l12 { border-left-color:var(--blue); }
+  article.has, .card.has { border-color:#6a5428; border-left-width:4px; }
+  article.has.l9, .card.has.l9 { border-left-color:var(--teal); }
+  article.has.l12, .card.has.l12 { border-left-color:var(--blue); }
+  .top { display:flex; justify-content:space-between; gap:8px; align-items:center; }
+  .stock { font-weight:700; }
+  .lot { font-size:12px; padding:2px 8px; border-radius:99px; background:var(--teal-deep); white-space:nowrap; }
+  .lot.l12 { background:var(--blue); }
+  .meta { color:#c5d0d6; font-size:14px; margin:4px 0; }
+  .meta.vin { color:var(--muted); font-size:13px; }
+  .issue { color:var(--gold); font-size:14px; margin:6px 0 0; }
+  .actions { display:flex; gap:6px; margin-top:8px; }
+  .actions button { flex:1; padding:8px; font-size:14px; }
+  dialog { width:min(520px, calc(100% - 24px)); background:#1c242c; color:var(--ink); border:1px solid var(--line); border-radius:16px; padding:14px; }
+  dialog::backdrop { background:#0008; }
+  label { display:block; color:var(--muted); font-size:12px; margin:8px 0 4px; }
+  textarea { width:100%; min-height:90px; }
+  .photo { width:100%; border-radius:10px; margin-top:8px; display:none; }
+  .bar { position:fixed; bottom:0; left:0; right:0; display:flex; gap:8px; padding:10px 14px calc(10px + env(safe-area-inset-bottom)); background:#12171cf0; border-top:1px solid var(--line); z-index:3; }
+  .bar button { flex:1; font-size:14px; }
+  .warn { color:var(--amber); font-size:12px; margin-top:6px; }
+  .jumps { margin:8px 0 12px; font-size:14px; }
+  .jumps a { color:var(--teal); }
+  .noscript-note { background:#2a2214; border:1px solid #6a5428; color:var(--gold); padding:10px 12px; border-radius:10px; font-size:13px; margin:0 0 12px; }
+  .copy-fallback { white-space:pre-wrap; background:#10161b; border:1px solid var(--line); border-radius:10px; padding:10px; font-size:13px; margin-top:10px; max-height:40vh; overflow:auto; }
+  #live-root[hidden], #static-root.hidden { display:none !important; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Lot 9 and Lot 12</h1>
+  <p class="sub">David's Auto Sales. Seeded from the 10/01/2026 aged inventory report. Stored on this phone.</p>
+  <input id="q" type="search" placeholder="Stock #, VIN (last 6), or make/model" enterkeyhint="search" autocomplete="off" autocorrect="off" spellcheck="false">
+  <div class="tabs" id="tabs">
+    <button type="button" class="on" data-lot="all">All</button>
+    <button type="button" data-lot="9">Lot 9</button>
+    <button type="button" data-lot="12">Lot 12</button>
+    <button type="button" data-lot="issues">Issues</button>
+  </div>
+</header>
+<main>
+  <div id="static-root">
+    <!--STATIC_LIST-->
+  </div>
+  <div id="live-root" hidden>
+    <div class="counts" id="counts"></div>
+    <div class="match-counts" id="matchCounts"></div>
+    <div id="list"></div>
+  </div>
+</main>
+<div class="bar" id="bar" hidden>
+  <button type="button" id="add">Add car</button>
+  <button type="button" id="export">Export CSV</button>
+  <button type="button" class="primary" id="copy">Copy for Grok</button>
+</div>
+<dialog id="dlg">
+  <form id="form">
+    <strong id="dlgTitle">Car</strong>
+    <label>Lot</label>
+    <select name="lot"><option value="9">9</option><option value="12">12</option></select>
+    <label>Stock #</label>
+    <input name="stock" required>
+    <label>Year / make / model</label>
+    <div class="row">
+      <input name="year" inputmode="numeric" placeholder="Year">
+      <input name="make" placeholder="Make">
+      <input name="model" placeholder="Model">
+    </div>
+    <label>Color</label>
+    <input name="color">
+    <label>VIN (last 6)</label>
+    <input name="vin" maxlength="6" placeholder="Last 6">
+    <label>What is wrong</label>
+    <textarea name="issues" placeholder="Battery dead, AC weak, driver fender dented"></textarea>
+    <label>Status</label>
+    <select name="status"><option>On lot</option><option>Sold</option><option>Moved</option><option>Wholesale</option></select>
+    <label>Photo</label>
+    <input name="photo" type="file" accept="image/*" capture="environment">
+    <img class="photo" id="preview" alt="">
+    <p class="warn">A photo does not identify the car by itself. Confirm stock or year/make/model before saving.</p>
+    <div class="row" style="margin-top:12px">
+      <button type="button" id="cancel">Cancel</button>
+      <button class="primary" type="submit">Save</button>
+    </div>
+  </form>
+</dialog>
+<dialog id="copyDlg">
+  <strong>Copy for Grok</strong>
+  <p class="sub" id="copyMsg"></p>
+  <pre class="copy-fallback" id="copyText"></pre>
+  <div class="row" style="margin-top:12px">
+    <button type="button" id="copyClose">Close</button>
+  </div>
+</dialog>
+<script>
+(function () {
+"use strict";
+
+const SEED = /*SEED_JSON*/null/*END_SEED*/;
+const KEY = "davids-lots-v2";
+const OLD_KEY = "davids-lots-v1";
+const TRACKED = ["lot","year","make","model","color","vin","miles","purchased","price","issues","status","flag","photo"];
+
+let store = { overrides: {}, added: [] };
+let filter = "all";
+let editing = null; // stock string or null for new
+const $ = (id) => document.getElementById(id);
+
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, (ch) => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[ch]);
+}
+
+function stripId(s) {
+  return String(s || "").toLowerCase().replace(/[-\s]/g, "");
+}
+
+function today() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function seedByStock() {
+  const m = Object.create(null);
+  for (const c of SEED) m[c.stock] = c;
+  return m;
+}
+
+function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
+
+function diffAgainstSeed(car, seed) {
+  if (!seed) return deepClone(car);
+  const o = {};
+  for (const k of TRACKED) {
+    const a = car[k] ?? "";
+    const b = seed[k] ?? "";
+    if (String(a) !== String(b)) o[k] = car[k];
+  }
+  if (car.updated) o.updated = car.updated;
+  return o;
+}
+
+function migrateFromV1() {
+  try {
+    const raw = localStorage.getItem(OLD_KEY);
+    if (!raw) return null;
+    const cars = JSON.parse(raw);
+    if (!Array.isArray(cars)) return null;
+    const bySeed = seedByStock();
+    const overrides = {};
+    const added = [];
+    const seedStocks = new Set(SEED.map(c => c.stock));
+    for (const c of cars) {
+      if (!c || !c.stock) continue;
+      if (!seedStocks.has(c.stock)) {
+        added.push(c);
+        continue;
+      }
+      const d = diffAgainstSeed(c, bySeed[c.stock]);
+      if (Object.keys(d).length) overrides[c.stock] = d;
+    }
+    return { overrides, added };
+  } catch (e) {
+    return null;
+  }
+}
+
+function loadStore() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object" && parsed.overrides) {
+        store = { overrides: parsed.overrides || {}, added: parsed.added || [] };
+        return;
+      }
+    }
+  } catch (e) {}
+  const migrated = migrateFromV1();
+  if (migrated) {
+    store = migrated;
+    saveStore();
+    try { localStorage.removeItem(OLD_KEY); } catch (e) {}
+  } else {
+    store = { overrides: {}, added: [] };
+  }
+}
+
+function saveStore() {
+  localStorage.setItem(KEY, JSON.stringify(store));
+}
+
+function mergeCars() {
+  const bySeed = seedByStock();
+  const out = SEED.map(c => {
+    const o = store.overrides[c.stock];
+    return o ? Object.assign({}, c, o) : Object.assign({}, c);
+  });
+  for (const a of store.added) {
+    if (!bySeed[a.stock]) out.push(Object.assign({}, a));
+  }
+  return out;
+}
+
+function days(p) {
+  if (!p) return "";
+  const d = Math.floor((Date.now() - new Date(p + "T00:00:00")) / 86400000);
+  return Number.isFinite(d) ? d : "";
+}
+
+function sortWithin(a, b) {
+  return (a.make || "").localeCompare(b.make || "")
+    || (a.model || "").localeCompare(b.model || "")
+    || (a.stock || "").localeCompare(b.stock || "");
+}
+
+function tokensOf(q) {
+  return q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+}
+
+function matches(car, tokens) {
+  if (!tokens.length) return { ok: true, exact: false };
+  const stock = String(car.stock || "").toLowerCase();
+  const vin = String(car.vin || "").toLowerCase();
+  const stockS = stripId(car.stock);
+  const vinS = stripId(car.vin);
+  const fields = [
+    stock, vin,
+    String(car.year || "").toLowerCase(),
+    String(car.make || "").toLowerCase(),
+    String(car.model || "").toLowerCase(),
+    String(car.color || "").toLowerCase(),
+    String(car.issues || "").toLowerCase()
+  ];
+  const blob = fields.join(" ");
+  let exact = false;
+  for (const t of tokens) {
+    const tS = stripId(t);
+    const hit =
+      blob.includes(t) ||
+      (tS && (stockS.includes(tS) || vinS.includes(tS)));
+    if (!hit) return { ok: false, exact: false };
+    if (stock === t || vin === t || stockS === tS || vinS === tS) exact = true;
+  }
+  return { ok: true, exact };
+}
+
+function filteredList(cars, q) {
+  const tokens = tokensOf(q);
+  let list = cars.filter(c => {
+    if (filter === "issues") return !!c.issues && c.status === "On lot";
+    if (filter === "9" || filter === "12") {
+      if (c.lot !== filter) return false;
+      if (c.status !== "On lot") return false;
+    }
+    // "all" shows everything including non-on-lot? Keep prior: all shows on-lot mainly but also others
+    // Spec: tabs All / Lot 9 / Lot 12 / Issues — Lot tabs only that lot on-lot
+    if (filter === "all" && c.status !== "On lot") return false;
+    return matches(c, tokens).ok;
+  });
+  list = list.map(c => ({ c, exact: matches(c, tokens).exact }));
+  list.sort((a, b) => {
+    if (a.exact !== b.exact) return a.exact ? -1 : 1;
+    if (a.c.lot !== b.c.lot) return Number(a.c.lot) - Number(b.c.lot);
+    return sortWithin(a.c, b.c);
+  });
+  return list.map(x => x.c);
+}
+
+function cardHTML(c) {
+  const lotCls = c.lot === "12" ? "l12" : "l9";
+  const has = c.issues ? " has" : "";
+  const color = c.color ? " · " + esc(c.color) : "";
+  const mi = c.miles ? Number(c.miles).toLocaleString() + " mi · " : "";
+  const d = days(c.purchased);
+  const dayStr = d !== "" ? " · " + d + " days" : "";
+  const purchased = c.purchased || "no purchase date";
+  return `<article class="card ${lotCls}${has}" data-stock="${esc(c.stock)}">
+    <div class="top"><span class="stock">${esc(c.stock)}</span><span class="lot ${lotCls}">Lot ${esc(c.lot)}</span></div>
+    <div class="meta">${esc(c.year)} ${esc(c.make)} ${esc(c.model)}${color}</div>
+    <div class="meta">${mi}${esc(purchased)}${dayStr}</div>
+    <div class="meta vin">VIN (last 6): ${esc(c.vin || "—")}</div>
+    ${c.issues ? `<div class="issue">${esc(c.issues)}</div>` : ""}
+    ${c.flag ? `<div class="warn">${esc(c.flag)}</div>` : ""}
+    ${c.status && c.status !== "On lot" ? `<div class="warn">Status: ${esc(c.status)}</div>` : ""}
+    <div class="actions">
+      <button type="button" data-edit="${esc(c.stock)}">Issue / photo</button>
+      <button type="button" data-move="${esc(c.stock)}">Move lot</button>
+    </div>
+  </article>`;
+}
+
+function renderSections(list, q) {
+  const tokens = tokensOf(q);
+  const searching = tokens.length > 0;
+  if (filter === "all") {
+    const g9 = list.filter(c => c.lot === "9");
+    const g12 = list.filter(c => c.lot === "12");
+    let html = "";
+    if (searching) {
+      $("matchCounts").textContent = `Matches: Lot 9 · ${g9.length}, Lot 12 · ${g12.length} (total ${list.length})`;
+    } else {
+      $("matchCounts").textContent = "";
+    }
+    html += `<section class="lot-section" id="live-lot-9"><h2 class="lot-head lot-head-9">Lot 9 · ${g9.length} cars</h2>`;
+    html += g9.length ? g9.map(cardHTML).join("") : `<p class="sub">No cars on Lot 9 match.</p>`;
+    html += `</section>`;
+    html += `<section class="lot-section" id="live-lot-12"><h2 class="lot-head lot-head-12">Lot 12 · ${g12.length} cars</h2>`;
+    html += g12.length ? g12.map(cardHTML).join("") : `<p class="sub">No cars on Lot 12 match.</p>`;
+    html += `</section>`;
+    return html;
+  }
+  if (searching) {
+    const n9 = list.filter(c => c.lot === "9").length;
+    const n12 = list.filter(c => c.lot === "12").length;
+    $("matchCounts").textContent = `Matches: Lot 9 · ${n9}, Lot 12 · ${n12} (showing ${list.length})`;
+  } else {
+    $("matchCounts").textContent = "";
+  }
+  if (!list.length) return `<p class="sub">No cars match.</p>`;
+  // single lot or issues — still group by lot if mixed (issues can span both)
+  if (filter === "issues") {
+    const g9 = list.filter(c => c.lot === "9").sort(sortWithin);
+    const g12 = list.filter(c => c.lot === "12").sort(sortWithin);
+    let html = "";
+    if (g9.length) {
+      html += `<section class="lot-section"><h2 class="lot-head lot-head-9">Lot 9 · ${g9.length} cars</h2>${g9.map(cardHTML).join("")}</section>`;
+    }
+    if (g12.length) {
+      html += `<section class="lot-section"><h2 class="lot-head lot-head-12">Lot 12 · ${g12.length} cars</h2>${g12.map(cardHTML).join("")}</section>`;
+    }
+    return html || `<p class="sub">No cars match.</p>`;
+  }
+  return list.map(cardHTML).join("");
+}
+
+function show() {
+  const cars = mergeCars();
+  const q = $("q").value;
+  const on = cars.filter(c => c.status === "On lot");
+  $("counts").innerHTML = [
+    [on.length, "On lot"],
+    [on.filter(c => c.lot === "9").length, "Lot 9"],
+    [on.filter(c => c.lot === "12").length, "Lot 12"],
+    [on.filter(c => c.issues).length, "Issues"]
+  ].map(([n, l]) => `<div><b>${n}</b><span>${l}</span></div>`).join("");
+  const list = filteredList(cars, q);
+  $("list").innerHTML = renderSections(list, q);
+}
+
+function findMerged(stock) {
+  return mergeCars().find(x => x.stock === stock);
+}
+
+function openEdit(stock) {
+  editing = stock || null;
+  const c = stock ? findMerged(stock) : { lot: filter === "12" ? "12" : "9", status: "On lot" };
+  if (stock && !c) return;
+  $("dlgTitle").textContent = stock || "New car";
+  const f = $("form");
+  f.lot.value = c.lot || "9";
+  f.stock.value = c.stock || "";
+  f.stock.readOnly = !!stock;
+  f.year.value = c.year || "";
+  f.make.value = c.make || "";
+  f.model.value = c.model || "";
+  f.color.value = c.color || "";
+  f.vin.value = c.vin || "";
+  f.issues.value = c.issues || "";
+  f.status.value = c.status || "On lot";
+  $("preview").style.display = c.photo ? "block" : "none";
+  $("preview").src = c.photo || "";
+  delete $("preview").dataset.pending;
+  $("dlg").showModal();
+}
+
+function persistCar(car, isNew) {
+  const bySeed = seedByStock();
+  if (isNew || !bySeed[car.stock]) {
+    const idx = store.added.findIndex(x => x.stock === car.stock);
+    if (idx >= 0) store.added[idx] = car;
+    else store.added.push(car);
+    // if somehow overriding a seed stock via rename — handled by stock readOnly on edit
+  } else {
+    const d = diffAgainstSeed(car, bySeed[car.stock]);
+    if (Object.keys(d).length) store.overrides[car.stock] = d;
+    else delete store.overrides[car.stock];
+  }
+  saveStore();
+}
+
+function changesText() {
+  const bySeed = seedByStock();
+  const lines = [];
+  const cars = mergeCars();
+  for (const c of cars) {
+    const seed = bySeed[c.stock];
+    if (!seed) {
+      lines.push(`ADDED: Lot ${c.lot} stock ${c.stock} ${c.year} ${c.make} ${c.model}` +
+        (c.color ? ` ${c.color}` : "") +
+        (c.issues ? ` — issues: ${c.issues}` : "") +
+        (c.status && c.status !== "On lot" ? ` — status: ${c.status}` : ""));
+      continue;
+    }
+    const changes = [];
+    if (String(c.lot) !== String(seed.lot)) changes.push(`lot ${seed.lot}→${c.lot}`);
+    if (String(c.status || "On lot") !== String(seed.status || "On lot")) changes.push(`status ${seed.status || "On lot"}→${c.status}`);
+    if (String(c.issues || "") !== String(seed.issues || "")) changes.push(`issues: ${c.issues || "(cleared)"}`);
+    if (String(c.color || "") !== String(seed.color || "")) changes.push(`color ${seed.color || "(blank)"}→${c.color || "(blank)"}`);
+    if (String(c.vin || "") !== String(seed.vin || "")) changes.push(`vin ${seed.vin}→${c.vin}`);
+    if (String(c.year || "") !== String(seed.year || "") ||
+        String(c.make || "") !== String(seed.make || "") ||
+        String(c.model || "") !== String(seed.model || "")) {
+      changes.push(`ymm ${seed.year} ${seed.make} ${seed.model}→${c.year} ${c.make} ${c.model}`);
+    }
+    if (c.photo && c.photo !== seed.photo) changes.push("photo added/updated");
+    if (changes.length) {
+      lines.push(`CHANGED: stock ${c.stock} ${c.year} ${c.make} ${c.model} — ${changes.join("; ")}`);
+    }
+  }
+  // removed? we don't support delete of seed cars
+  if (!lines.length) return "No local changes vs SEED.";
+  return "Local changes vs SEED (paste to Grok to update master):\n" + lines.join("\n");
+}
+
+// Activate live UI
+loadStore();
+$("static-root").classList.add("hidden");
+$("static-root").hidden = true;
+$("live-root").hidden = false;
+$("bar").hidden = false;
+
+$("list").addEventListener("click", (e) => {
+  const edit = e.target.closest("[data-edit]");
+  const move = e.target.closest("[data-move]");
+  if (edit) {
+    openEdit(edit.getAttribute("data-edit"));
+    return;
+  }
+  if (move) {
+    const stock = move.getAttribute("data-move");
+    const c = findMerged(stock);
+    if (!c) return;
+    const next = c.lot === "9" ? "12" : "9";
+    if (!confirm(`Move stock ${c.stock} from Lot ${c.lot} to Lot ${next}?`)) return;
+    const updated = Object.assign({}, c, { lot: next, updated: today() });
+    persistCar(updated, !seedByStock()[stock]);
+    show();
+  }
+});
+
+document.querySelectorAll("#tabs button").forEach(b => {
+  b.addEventListener("click", () => {
+    document.querySelectorAll("#tabs button").forEach(x => x.classList.remove("on"));
+    b.classList.add("on");
+    filter = b.dataset.lot;
+    show();
+  });
+});
+
+$("q").addEventListener("input", show);
+$("add").onclick = () => openEdit("");
+$("cancel").onclick = () => $("dlg").close();
+$("copyClose").onclick = () => $("copyDlg").close();
+
+$("form").photo.addEventListener("change", () => {
+  const file = $("form").photo.files[0];
+  if (!file) return;
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+  img.onload = () => {
+    const scale = Math.min(1, 900 / Math.max(img.width, img.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(img.width * scale);
+    canvas.height = Math.round(img.height * scale);
+    canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+    const data = canvas.toDataURL("image/jpeg", 0.7);
+    $("preview").src = data;
+    $("preview").style.display = "block";
+    $("preview").dataset.pending = data;
+    URL.revokeObjectURL(url);
+  };
+  img.src = url;
+});
+
+$("form").onsubmit = (e) => {
+  e.preventDefault();
+  const f = new FormData(e.target);
+  const stock = String(f.get("stock")).trim();
+  if (!stock) return;
+  const isNew = !editing;
+  const existing = findMerged(editing || stock);
+  const bySeed = seedByStock();
+  let base = existing ? Object.assign({}, existing) : {
+    miles: "", purchased: today(), price: 0, flag: "", photo: ""
+  };
+  if (isNew && bySeed[stock]) {
+    alert("That stock # already exists in the seed list. Edit it instead.");
+    return;
+  }
+  if (isNew && store.added.some(x => x.stock === stock)) {
+    alert("That stock # was already added locally.");
+    return;
+  }
+  base.stock = stock;
+  base.lot = String(f.get("lot"));
+  base.year = String(f.get("year") || "").trim();
+  base.make = String(f.get("make") || "").trim();
+  base.model = String(f.get("model") || "").trim();
+  base.color = String(f.get("color") || "").trim();
+  base.vin = String(f.get("vin") || "").trim();
+  base.issues = String(f.get("issues") || "").trim();
+  base.status = String(f.get("status") || "On lot");
+  base.updated = today();
+  if ($("preview").dataset.pending) base.photo = $("preview").dataset.pending;
+  persistCar(base, isNew || !bySeed[stock]);
+  $("dlg").close();
+  show();
+};
+
+function csv() {
+  const cols = ["stock","lot","year","make","model","color","vin","miles","purchased","price","issues","status","updated","flag"];
+  const cars = mergeCars();
+  const lines = [cols.join(",")].concat(cars.map(c =>
+    cols.map(k => `"${String(c[k] ?? "").replaceAll('"','""')}"`).join(",")
+  ));
+  const blob = new Blob([lines.join("\n")], { type: "text/csv" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "lot-9-and-12.csv";
+  a.click();
+}
+$("export").onclick = csv;
+
+$("copy").onclick = async () => {
+  const text = changesText();
+  try {
+    await navigator.clipboard.writeText(text);
+    $("copyMsg").textContent = "Copied to clipboard. Paste into the Grok chat.";
+    $("copyText").textContent = text;
+    $("copyDlg").showModal();
+  } catch (err) {
+    $("copyMsg").textContent = "Clipboard blocked — select and copy the text below.";
+    $("copyText").textContent = text;
+    $("copyDlg").showModal();
+  }
+};
+
+show();
+})();
+</script>
+</body>
+</html>
