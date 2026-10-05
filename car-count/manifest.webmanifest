@@ -1,0 +1,14 @@
+{
+  "name": "Car Count",
+  "short_name": "Car Count",
+  "description": "David's Auto Sales — count of units moved to Lot 1 (reads Lot Tracker data on this phone)",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#12171c",
+  "theme_color": "#12171c",
+  "icons": [
+    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" },
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

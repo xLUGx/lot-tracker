@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Car Count">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#12171c">
+<title>Car Count</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg:#12171c; --card:#1c242c; --ink:#eef3f6; --muted:#9aabb6; --line:#2c3842;
+    --teal:#3dbeb6; --teal-deep:#1f6f6a; --gold:#e2c27a; --amber:#e2b15a;
+    --l1:#7a6fa8; --l1-deep:#5a5280; --red:#d45a5a;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:var(--bg); color:var(--ink); }
+  header { position:sticky; top:0; z-index:2; background:#12171ce6; backdrop-filter:blur(8px); padding:calc(12px + env(safe-area-inset-top)) 14px 8px; border-bottom:1px solid var(--line); }
+  .head-row { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  h1 { font-size:18px; margin:0 0 2px; }
+  h2 { font-size:15px; margin:18px 0 8px; padding:8px 10px; border-radius:10px; background:#182028; border-left:4px solid var(--l1); }
+  .sub { color:var(--muted); font-size:12px; margin:0 0 8px; }
+  input, select, button { font:inherit; color:var(--ink); background:#10161b; border:1px solid var(--line); border-radius:10px; padding:10px 12px; }
+  input { width:100%; }
+  button { background:#24303a; cursor:pointer; }
+  button.primary { background:var(--teal-deep); border-color:var(--teal-deep); font-weight:650; }
+  button.small { padding:6px 10px; font-size:13px; white-space:nowrap; }
+  button.danger { background:#3a2222; border-color:#6a3434; color:#f0c8c8; }
+  main { padding:12px 14px 110px; }
+  .big { display:flex; gap:8px; margin:4px 0 8px; }
+  .big div { flex:1; background:var(--card); border-radius:14px; padding:12px 8px; text-align:center; border-top:4px solid var(--l1); }
+  .big b { display:block; font-size:56px; line-height:1.05; font-weight:750; }
+  .big .month b { font-size:40px; line-height:1.4; }
+  .big span { color:var(--muted); font-size:13px; }
+  .status { color:var(--muted); font-size:13px; margin:0 0 8px; min-height:1.2em; }
+  .status.err { color:var(--amber); }
+  .note { background:#2a2214; border:1px solid #6a5428; color:var(--gold); padding:10px 12px; border-radius:10px; font-size:13px; margin:0 0 12px; }
+  .row { display:flex; gap:8px; align-items:center; }
+  .month-row { display:flex; gap:8px; align-items:center; margin:8px 0; }
+  .month-row label { color:var(--muted); font-size:13px; white-space:nowrap; }
+  details.day { background:var(--card); border-radius:12px; margin:0 0 8px; border-left:4px solid var(--l1); }
+  details.day > summary { list-style:none; cursor:pointer; padding:12px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  details.day > summary::-webkit-details-marker { display:none; }
+  details.day > summary .n { font-weight:750; font-size:18px; background:var(--l1-deep); border-radius:99px; padding:2px 12px; min-width:2.2em; text-align:center; }
+  details.day > summary .d::before { content:"▸ "; color:var(--muted); }
+  details.day[open] > summary .d::before { content:"▾ "; }
+  details.day.today > summary .d { color:#fff; font-weight:650; }
+  .units { padding:0 12px 8px; }
+  .unit { border-top:1px solid var(--line); padding:10px 0; display:flex; justify-content:space-between; gap:8px; align-items:flex-start; }
+  .unit .stock { font-weight:700; }
+  .unit .meta { color:#c5d0d6; font-size:14px; margin:2px 0; }
+  .unit .meta.vin { color:var(--muted); font-size:13px; }
+  .tag { display:inline-block; font-size:11px; padding:1px 7px; border-radius:99px; background:#2c3842; color:var(--muted); margin-left:6px; vertical-align:1px; }
+  .tag.manual { background:#4a3f1e; color:var(--gold); }
+  .card { background:var(--card); border-radius:12px; padding:2px 12px; margin:0 0 8px; }
+  .months .m { display:flex; justify-content:space-between; padding:11px 0; border-top:1px solid var(--line); cursor:pointer; }
+  .months .m:first-child { border-top:0; }
+  .months .m.on span:first-child { color:var(--l1); font-weight:650; }
+  .months .m b { font-size:17px; }
+  .empty { color:var(--muted); font-size:14px; padding:6px 2px; }
+  .bar { position:fixed; bottom:0; left:0; right:0; display:flex; gap:8px; padding:10px 14px calc(10px + env(safe-area-inset-bottom)); background:#12171cf0; border-top:1px solid var(--line); z-index:3; }
+  .bar button { flex:1; font-size:13px; padding:10px 6px; }
+  dialog { width:min(520px, calc(100% - 24px)); background:#1c242c; color:var(--ink); border:1px solid var(--line); border-radius:16px; padding:14px; }
+  dialog::backdrop { background:#0008; }
+  dialog label { display:block; color:var(--muted); font-size:12px; margin:8px 0 4px; }
+  .found { font-size:13px; margin:6px 0 0; color:var(--muted); min-height:1.2em; }
+  .found.ok { color:var(--teal); }
+  .copy-fallback { white-space:pre-wrap; background:#10161b; border:1px solid var(--line); border-radius:10px; padding:10px; font-size:13px; margin-top:10px; max-height:45vh; overflow:auto; }
+  .foot { color:var(--muted); font-size:12px; margin:22px 0 0; line-height:1.45; }
+  #app[hidden], #bar[hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<header>
+  <div class="head-row">
+    <div>
+      <h1>Car Count</h1>
+      <p class="sub" style="margin:0">Units moved to Lot 1 · reads Lot Tracker on this phone</p>
+    </div>
+    <button type="button" class="small" id="refresh" title="Re-read Lot Tracker and update counts">Refresh</button>
+  </div>
+</header>
+<main>
+  <noscript><p class="note">Car Count needs JavaScript. Open this page in Safari (not a Files/Quick Look preview) with JavaScript turned on.</p></noscript>
+  <div id="app" hidden>
+    <div class="big">
+      <div><b id="todayN">0</b><span id="todayLbl">Today</span></div>
+      <div class="month"><b id="monthN">0</b><span id="monthLbl">This month</span></div>
+    </div>
+    <p class="status" id="status">Loading Lot Tracker…</p>
+    <div id="notice"></div>
+    <input id="q" type="search" placeholder="Search logged units: stock #, VIN, make/model" enterkeyhint="search" autocomplete="off" autocorrect="off" spellcheck="false">
+    <div id="results"></div>
+    <div id="monthView">
+      <h2 id="monthHead">This month</h2>
+      <div class="month-row">
+        <label for="month">Month</label>
+        <input type="month" id="month">
+        <button type="button" class="small" id="thisMonth">This month</button>
+      </div>
+      <div id="days"></div>
+      <h2>Monthly totals</h2>
+      <div class="card months" id="months"></div>
+      <h2 id="nowHead">On Lot 1 now</h2>
+      <div class="card" id="nowList"></div>
+    </div>
+    <p class="foot">
+      Data is per phone: the Car Count log lives only in this browser on this phone and is not shared with other phones or computers. Use Export CSV to keep a copy.
+      Car Count only reads Lot Tracker (it never changes it). A car counts once each time it lands on Lot 1, dated by the Lot Tracker move date (or the first day Car Count saw it). Logged units stay counted even after they leave Lot 1.
+      On iPhone, apps added to the Home Screen each get their own storage, so Car Count sees Lot Tracker edits made in the same place (for example both opened in Safari).
+    </p>
+  </div>
+</main>
+<div class="bar" id="bar" hidden>
+  <button type="button" id="manual">Log a unit manually</button>
+  <button type="button" id="export">Export CSV</button>
+  <button type="button" class="primary" id="copy">Copy summary</button>
+</div>
+
+<dialog id="manDlg">
+  <form id="manForm">
+    <strong>Log a unit manually</strong>
+    <p class="sub" style="margin-top:4px">Saved only in Car Count. Lot Tracker is not changed.</p>
+    <label for="mStock">Stock #</label>
+    <input id="mStock" name="stock" required list="stockList" autocomplete="off" autocorrect="off" spellcheck="false" autocapitalize="characters">
+    <datalist id="stockList"></datalist>
+    <p class="found" id="mFound"></p>
+    <label for="mDate">Date moved to Lot 1</label>
+    <input id="mDate" name="date" type="date" required>
+    <label>Year / make / model</label>
+    <div class="row">
+      <input name="year" inputmode="numeric" placeholder="Year">
+      <input name="make" placeholder="Make">
+      <input name="model" placeholder="Model">
+    </div>
+    <label>Color</label>
+    <input name="color">
+    <label>VIN (last 6)</label>
+    <input name="vin" maxlength="17" placeholder="Last 6">
+    <div class="row" style="margin-top:12px">
+      <button type="button" id="manCancel" style="flex:1">Cancel</button>
+      <button class="primary" type="submit" style="flex:1">Log unit</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="copyDlg">
+  <strong>Copy summary</strong>
+  <p class="sub" id="copyMsg"></p>
+  <pre class="copy-fallback" id="copyText"></pre>
+  <div class="row" style="margin-top:12px">
+    <button type="button" id="copyClose" style="flex:1">Close</button>
+  </div>
+</dialog>
+
+<script>
+(function () {
+"use strict";
+
+// ---- Keys --------------------------------------------------------------
+// Lot Tracker keys are READ-ONLY here. Car Count never writes/removes them.
+const TRACKER_KEY = "davids-lots-v2";
+const TRACKER_OLD_KEY = "davids-lots-v1";
+// Car Count's own storage.
+const LOG_KEY = "car-count-log-v1";
+const SEED_CACHE_KEY = "car-count-seed-cache-v1";
+const TRACKER_URL = "../index.html";
+
+const $ = (id) => document.getElementById(id);
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, (ch) => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[ch]);
+}
+function stripId(s) { return String(s || "").toLowerCase().replace(/[-\s]/g, ""); }
+function pad(n) { return String(n).padStart(2, "0"); }
+function localISO(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+function todayLocal() { return localISO(new Date()); }
+function isISODate(s) { return /^\d{4}-\d{2}-\d{2}$/.test(String(s || "")); }
+function monthLabel(ym) {
+  const [y, m] = ym.split("-").map(Number);
+  return (MONTHS[m - 1] || ym) + " " + y;
+}
+function dayLabel(iso) {
+  const [y, m, d] = iso.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  return DOW[dt.getDay()] + ", " + MONTHS[m - 1].slice(0, 3) + " " + d;
+}
+function shortDate(iso) {
+  const [y, m, d] = iso.split("-");
+  return m + "/" + d + "/" + y;
+}
+function plural(n, w) { return n + " " + w + (n === 1 ? "" : "s"); }
+
+// ---- Lot Tracker merge logic (ported read-only from Lot Tracker) --------
+const TRACKED = ["lot","year","make","model","color","vin","miles","purchased","price","issues","status","workStatus","flag","photo","inop"];
+const SEED_PREFERS_IF_LOCAL_EMPTY = new Set(["workStatus", "issues", "lot", "status"]);
+
+function normLot(lot) {
+  const s = String(lot ?? "").trim();
+  if (!s) return "";
+  const u = s.toUpperCase();
+  if (u === "AAA") return "AAA";
+  return s;
+}
+function isEmptyVal(v) { return v == null || String(v).trim() === ""; }
+function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
+function seedByStock(SEED) {
+  const m = Object.create(null);
+  for (const c of SEED) m[c.stock] = c;
+  return m;
+}
+function diffAgainstSeed(car, seed, opts) {
+  const prefer = !!(opts && opts.preferSeedIfLocalEmpty);
+  if (!seed) return deepClone(car);
+  const o = {};
+  for (const k of TRACKED) {
+    let a = car[k];
+    let b = seed[k];
+    if (k === "inop") {
+      a = !!a; b = !!b;
+      if (a === b) continue;
+      o[k] = a;
+      continue;
+    }
+    a = a ?? ""; b = b ?? "";
+    if (String(a) === String(b)) continue;
+    if (prefer && SEED_PREFERS_IF_LOCAL_EMPTY.has(k) && isEmptyVal(a) && !isEmptyVal(b)) continue;
+    o[k] = car[k];
+  }
+  if (car.updated) o.updated = car.updated;
+  return o;
+}
+function snapshotToStore(SEED, cars) {
+  const bySeed = seedByStock(SEED);
+  const overrides = {};
+  const added = [];
+  for (const c of cars) {
+    if (!c || !c.stock) continue;
+    if (!bySeed[c.stock]) { added.push(c); continue; }
+    const d = diffAgainstSeed(c, bySeed[c.stock], { preferSeedIfLocalEmpty: true });
+    if (Object.keys(d).some(k => k !== "updated")) overrides[c.stock] = d;
+  }
+  return { overrides, added };
+}
+function sanitizedOverrides(SEED, overrides) {
+  // Same healing Lot Tracker applies on load, but in memory only.
+  const bySeed = seedByStock(SEED);
+  const next = {};
+  for (const stock of Object.keys(overrides || {})) {
+    const seed = bySeed[stock];
+    const o = overrides[stock];
+    if (!o || typeof o !== "object") continue;
+    if (!seed) { next[stock] = o; continue; }
+    const d = diffAgainstSeed(Object.assign({}, seed, o), seed, { preferSeedIfLocalEmpty: true });
+    if (!Object.keys(d).some(k => k !== "updated")) continue;
+    next[stock] = d;
+  }
+  return next;
+}
+function applyOverride(seedCar, o) {
+  const merged = Object.assign({}, seedCar);
+  if (!o) return merged;
+  for (const k of Object.keys(o)) {
+    if (k === "updated") { merged.updated = o.updated; continue; }
+    if (!(TRACKED.includes(k) || k === "stock")) continue;
+    const localVal = o[k];
+    if (SEED_PREFERS_IF_LOCAL_EMPTY.has(k) && isEmptyVal(localVal) && !isEmptyVal(seedCar[k])) continue;
+    merged[k] = localVal;
+  }
+  return merged;
+}
+function readTrackerStore(SEED) {
+  // READ ONLY: getItem only.
+  let store = null;
+  let found = false;
+  try {
+    const raw = localStorage.getItem(TRACKER_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) store = snapshotToStore(SEED, parsed);
+      else if (parsed && typeof parsed === "object" && parsed.overrides) {
+        store = { overrides: parsed.overrides || {}, added: parsed.added || [] };
+      }
+      found = !!store;
+    }
+  } catch (e) {}
+  if (!store) {
+    try {
+      const raw = localStorage.getItem(TRACKER_OLD_KEY);
+      const cars = raw ? JSON.parse(raw) : null;
+      if (Array.isArray(cars)) { store = snapshotToStore(SEED, cars); found = true; }
+    } catch (e) {}
+  }
+  if (!store) store = { overrides: {}, added: [] };
+  store.overrides = sanitizedOverrides(SEED, store.overrides);
+  if (!Array.isArray(store.added)) store.added = [];
+  return { store, found };
+}
+function mergeCars(SEED, store) {
+  const bySeed = seedByStock(SEED);
+  const out = SEED.map(c => applyOverride(c, store.overrides[c.stock]));
+  for (const a of store.added) {
+    if (a && a.stock && !bySeed[a.stock]) out.push(Object.assign({}, a));
+  }
+  for (const c of out) c.lot = normLot(c.lot);
+  return out;
+}
+
+// Pull `const SEED = [...]` out of the tracker's index.html (bracket-matched, string-aware).
+function extractSeed(html) {
+  const at = html.indexOf("const SEED");
+  if (at < 0) throw new Error("SEED not found in Lot Tracker page");
+  const start = html.indexOf("[", at);
+  const eq = html.indexOf("=", at);
+  if (start < 0 || eq < 0 || /[^\s]/.test(html.slice(eq + 1, start))) throw new Error("SEED is not a list");
+  let depth = 0, inStr = false, escp = false;
+  for (let i = start; i < html.length; i++) {
+    const ch = html[i];
+    if (inStr) {
+      if (escp) escp = false;
+      else if (ch === "\\") escp = true;
+      else if (ch === '"') inStr = false;
+      continue;
+    }
+    if (ch === '"') inStr = true;
+    else if (ch === "[" || ch === "{") depth++;
+    else if (ch === "]" || ch === "}") {
+      depth--;
+      if (depth === 0) {
+        const seed = JSON.parse(html.slice(start, i + 1));
+        if (!Array.isArray(seed)) throw new Error("SEED is not a list");
+        return seed;
+      }
+    }
+  }
+  throw new Error("SEED list is incomplete");
+}
+
+// ---- Car Count log --------------------------------------------------------
+let log = { v: 1, entries: [], active: {}, removed: [] };
+let cars = null;            // current merged tracker list (null until loaded)
+let trackerFound = false;   // tracker localStorage key present on this storage
+let lastSource = "";        // "live" | "cache"
+let lastRefresh = null;
+let lastError = "";
+let addedThisRun = 0;
+let loading = false;
+
+function loadLog() {
+  try {
+    const raw = localStorage.getItem(LOG_KEY);
+    if (raw) {
+      const p = JSON.parse(raw);
+      if (Array.isArray(p)) log.entries = p; // tolerate a bare list
+      else if (p && typeof p === "object") {
+        log.entries = Array.isArray(p.entries) ? p.entries : [];
+        log.active = p.active && typeof p.active === "object" ? p.active : {};
+        log.removed = Array.isArray(p.removed) ? p.removed : [];
+      }
+    }
+  } catch (e) {}
+  log.entries = log.entries.filter(e => e && e.stock && isISODate(e.date));
+}
+function saveLog() {
+  try { localStorage.setItem(LOG_KEY, JSON.stringify(log)); }
+  catch (e) { alert("Could not save Car Count log on this phone (storage full or blocked)."); }
+}
+function newId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function entryKey(stock, date) { return String(stock) + "|" + date; }
+function entryFromCar(c, date, source) {
+  return {
+    id: newId(),
+    stock: String(c.stock || "").trim(),
+    year: String(c.year ?? ""), make: String(c.make ?? ""), model: String(c.model ?? ""),
+    vin: String(c.vin ?? ""), color: String(c.color ?? ""),
+    date, source, loggedAt: new Date().toISOString()
+  };
+}
+// Date moved: tracker `updated` (set when the lot changes). Lot Tracker writes it as a UTC
+// date, which can run one day ahead late in the evening, so never allow a future date.
+function moveDate(c, today) {
+  const u = c.updated;
+  if (isISODate(u)) return u > today ? today : u;
+  return today; // first day Car Count saw it on Lot 1
+}
+
+function scan(list) {
+  const today = todayLocal();
+  const onLot1 = list.filter(c => normLot(c.lot) === "1" && c.stock);
+  const here = new Set(onLot1.map(c => String(c.stock)));
+  const removed = new Set(log.removed);
+  let added = 0;
+  for (const c of onLot1) {
+    const stock = String(c.stock);
+    if (log.active[stock]) continue; // already logged for this stint
+    const date = moveDate(c, today);
+    const k = entryKey(stock, date);
+    const exists = log.entries.some(e => e.stock === stock && e.date === date);
+    if (!exists && !removed.has(k)) {
+      log.entries.push(entryFromCar(c, date, "auto"));
+      added++;
+    }
+    log.active[stock] = { date, since: today };
+  }
+  // Stint ends when the car is no longer on Lot 1 (entry itself is kept forever).
+  for (const s of Object.keys(log.active)) if (!here.has(s)) delete log.active[s];
+  saveLog();
+  return added;
+}
+
+async function refresh() {
+  if (loading) return;
+  loading = true;
+  $("refresh").disabled = true;
+  $("status").className = "status";
+  $("status").textContent = "Reading Lot Tracker…";
+  let SEED = null;
+  lastError = "";
+  try {
+    const res = await fetch(TRACKER_URL, { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    SEED = extractSeed(await res.text());
+    lastSource = "live";
+    try { localStorage.setItem(SEED_CACHE_KEY, JSON.stringify({ at: new Date().toISOString(), seed: SEED })); } catch (e) {}
+  } catch (err) {
+    lastError = String(err && err.message || err);
+    try {
+      const c = JSON.parse(localStorage.getItem(SEED_CACHE_KEY) || "null");
+      if (c && Array.isArray(c.seed)) { SEED = c.seed; lastSource = "cache"; }
+    } catch (e) {}
+  }
+  if (SEED) {
+    const t = readTrackerStore(SEED);
+    trackerFound = t.found;
+    cars = mergeCars(SEED, t.store);
+    addedThisRun = scan(cars);
+    lastRefresh = new Date();
+  }
+  loading = false;
+  $("refresh").disabled = false;
+  render();
+}
+
+// ---- Rendering ----------------------------------------------------------
+function sortEntries(list) {
+  return list.slice().sort((a, b) =>
+    (b.date || "").localeCompare(a.date || "") ||
+    (b.loggedAt || "").localeCompare(a.loggedAt || "") ||
+    String(a.stock).localeCompare(String(b.stock)));
+}
+function unitHTML(e, showDate) {
+  const ymm = [e.year, e.make, e.model].filter(Boolean).join(" ") || "Unknown vehicle";
+  const color = e.color ? " · " + esc(e.color) : "";
+  const tag = e.source === "manual" ? `<span class="tag manual">manual</span>` : "";
+  const date = showDate ? `<div class="meta vin">${esc(dayLabel(e.date))}, ${esc(e.date.slice(0, 4))}</div>` : "";
+  return `<div class="unit">
+    <div>
+      <div><span class="stock">${esc(e.stock)}</span>${tag}</div>
+      <div class="meta">${esc(ymm)}${color}</div>
+      <div class="meta vin">VIN (last 6): ${esc(e.vin || "—")}</div>
+      ${date}
+    </div>
+    <button type="button" class="small danger" data-remove="${esc(e.id)}">Remove</button>
+  </div>`;
+}
+function matches(e, tokens) {
+  const blob = [e.stock, e.vin, e.year, e.make, e.model, e.color].map(x => String(x || "").toLowerCase()).join(" ");
+  const ids = stripId(e.stock) + " " + stripId(e.vin);
+  return tokens.every(t => blob.includes(t) || (stripId(t) && ids.includes(stripId(t))));
+}
+
+function render() {
+  const today = todayLocal();
+  const curMonth = today.slice(0, 7);
+  const entries = log.entries;
+  $("todayN").textContent = entries.filter(e => e.date === today).length;
+  $("todayLbl").textContent = "Today · " + dayLabel(today);
+  $("monthN").textContent = entries.filter(e => e.date.startsWith(curMonth)).length;
+  $("monthLbl").textContent = "This month · " + MONTHS[Number(curMonth.slice(5)) - 1];
+
+  // Status line
+  const st = $("status");
+  if (!cars && loading) {
+    st.className = "status";
+    st.textContent = "Reading Lot Tracker…";
+  } else if (!cars) {
+    st.className = "status err";
+    st.textContent = "Could not read Lot Tracker" + (lastError ? " (" + lastError + ")" : "") + ". Showing saved counts only.";
+  } else {
+    const n1 = cars.filter(c => c.lot === "1").length;
+    const when = lastRefresh ? lastRefresh.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "";
+    let s = `Lot Tracker: ${cars.length} cars · on Lot 1 now: ${n1}` + (when ? ` · updated ${when}` : "");
+    if (addedThisRun) s += ` · logged ${plural(addedThisRun, "new unit")}`;
+    if (lastSource === "cache") { s += " · offline, using last saved list"; st.className = "status err"; }
+    else st.className = "status";
+    st.textContent = s;
+  }
+  $("notice").innerHTML = (cars && !trackerFound)
+    ? `<p class="note">No Lot Tracker edits found in this browser's storage, so only the server list is visible here. Moves made in Lot Tracker show up here only when both are opened the same way on this phone (on iPhone, each Home Screen app has its own storage — e.g. open both in Safari).</p>`
+    : "";
+
+  // Month picker default
+  const mp = $("month");
+  if (!mp.value) mp.value = curMonth;
+  const ym = mp.value || curMonth;
+
+  // Search
+  const tokens = $("q").value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  if (tokens.length) {
+    const hits = sortEntries(entries.filter(e => matches(e, tokens)));
+    $("results").innerHTML = `<h2>Search · ${plural(hits.length, "unit")}</h2>` +
+      (hits.length ? `<div class="card">${hits.map(e => unitHTML(e, true)).join("")}</div>` : `<p class="empty">No logged units match.</p>`);
+    $("monthView").hidden = true;
+  } else {
+    $("results").innerHTML = "";
+    $("monthView").hidden = false;
+  }
+
+  // Daily list for chosen month
+  const inMonth = entries.filter(e => e.date.startsWith(ym));
+  $("monthHead").textContent = (ym === curMonth ? "This month · " : "") + monthLabel(ym) + " · " + plural(inMonth.length, "unit");
+  const byDay = new Map();
+  for (const e of sortEntries(inMonth)) {
+    if (!byDay.has(e.date)) byDay.set(e.date, []);
+    byDay.get(e.date).push(e);
+  }
+  const open = new Set([...document.querySelectorAll("details.day[open]")].map(d => d.dataset.day));
+  let html = "";
+  for (const [day, list] of byDay) {
+    const isOpen = open.has(day) || (day === today && !document.querySelector("details.day"));
+    html += `<details class="day${day === today ? " today" : ""}" data-day="${day}"${isOpen ? " open" : ""}>
+      <summary><span class="d">${esc(dayLabel(day))}${day === today ? " · Today" : ""}</span><span class="n">${list.length}</span></summary>
+      <div class="units">${list.map(e => unitHTML(e, false)).join("")}</div>
+    </details>`;
+  }
+  $("days").innerHTML = html || `<p class="empty">No units logged in ${esc(monthLabel(ym))}.</p>`;
+
+  // Monthly totals
+  const byMonth = new Map();
+  for (const e of entries) byMonth.set(e.date.slice(0, 7), (byMonth.get(e.date.slice(0, 7)) || 0) + 1);
+  if (!byMonth.has(curMonth)) byMonth.set(curMonth, 0);
+  const months = [...byMonth.keys()].sort().reverse();
+  $("months").innerHTML = months.map(m =>
+    `<div class="m${m === ym ? " on" : ""}" data-month="${m}"><span>${esc(monthLabel(m))}</span><b>${byMonth.get(m)}</b></div>`
+  ).join("");
+
+  // On Lot 1 now (from tracker)
+  const now = cars ? cars.filter(c => c.lot === "1") : [];
+  $("nowHead").textContent = "On Lot 1 now · " + (cars ? now.length : "?");
+  $("nowList").innerHTML = !cars ? `<p class="empty">Lot Tracker list not loaded.</p>`
+    : now.length ? now.map(c => {
+        const a = log.active[String(c.stock)];
+        return `<div class="unit"><div><div><span class="stock">${esc(c.stock)}</span></div>
+          <div class="meta">${esc([c.year, c.make, c.model].filter(Boolean).join(" "))}${c.color ? " · " + esc(c.color) : ""}</div>
+          <div class="meta vin">VIN (last 6): ${esc(c.vin || "—")}${a ? " · counted " + esc(shortDate(a.date)) : ""}</div></div></div>`;
+      }).join("")
+    : `<p class="empty">No cars on Lot 1 right now.</p>`;
+}
+
+// ---- Actions ---------------------------------------------------------------
+document.addEventListener("click", (ev) => {
+  const rm = ev.target.closest("[data-remove]");
+  if (rm) {
+    ev.preventDefault();
+    const id = rm.getAttribute("data-remove");
+    const e = log.entries.find(x => x.id === id);
+    if (!e) return;
+    if (!confirm(`Remove stock ${e.stock} (${shortDate(e.date)}) from Car Count?\n\nThis only changes Car Count, not Lot Tracker.`)) return;
+    log.entries = log.entries.filter(x => x.id !== id);
+    const k = entryKey(e.stock, e.date);
+    if (!log.removed.includes(k)) log.removed.push(k); // don't auto re-add the same stint
+    saveLog();
+    render();
+    return;
+  }
+  const m = ev.target.closest("[data-month]");
+  if (m) {
+    $("month").value = m.getAttribute("data-month");
+    render();
+    $("monthHead").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+});
+
+$("refresh").onclick = refresh;
+$("q").addEventListener("input", render);
+$("month").addEventListener("change", render);
+$("thisMonth").onclick = () => { $("month").value = todayLocal().slice(0, 7); render(); };
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") refresh(); });
+
+// Manual log
+function findTrackerCar(stock) {
+  if (!cars || !stock) return null;
+  const s = String(stock).trim().toLowerCase();
+  return cars.find(c => String(c.stock).toLowerCase() === s)
+    || cars.find(c => stripId(c.stock) === stripId(s)) || null;
+}
+function onManualStock() {
+  const f = $("manForm");
+  const c = findTrackerCar(f.stock.value);
+  const out = $("mFound");
+  if (c) {
+    for (const k of ["year", "make", "model", "color", "vin"]) f[k].value = c[k] ?? "";
+    out.className = "found ok";
+    out.textContent = `Found in Lot Tracker: ${c.year || ""} ${c.make || ""} ${c.model || ""} (${c.lot === "AAA" ? "AAA" : "Lot " + c.lot})`;
+  } else {
+    out.className = "found";
+    out.textContent = f.stock.value.trim() ? (cars ? "Not in Lot Tracker list — details are optional." : "Lot Tracker list not loaded — details are optional.") : "";
+  }
+}
+$("manual").onclick = () => {
+  const f = $("manForm");
+  f.reset();
+  $("mDate").value = todayLocal();
+  $("mDate").max = todayLocal();
+  $("mFound").textContent = "";
+  $("stockList").innerHTML = (cars || []).map(c => `<option value="${esc(c.stock)}">${esc([c.year, c.make, c.model].filter(Boolean).join(" "))}</option>`).join("");
+  $("manDlg").showModal();
+  setTimeout(() => f.stock.focus(), 50);
+};
+$("mStock").addEventListener("input", onManualStock);
+$("mStock").addEventListener("change", onManualStock);
+$("manCancel").onclick = () => $("manDlg").close();
+$("manForm").onsubmit = (ev) => {
+  ev.preventDefault();
+  const f = $("manForm");
+  const raw = f.stock.value.trim();
+  const date = f.date.value;
+  if (!raw || !isISODate(date)) return;
+  const c = findTrackerCar(raw);
+  const stock = c ? String(c.stock) : raw;
+  if (log.entries.some(e => e.stock === stock && e.date === date) &&
+      !confirm(`Stock ${stock} is already logged on ${shortDate(date)}. Log it again?`)) return;
+  const e = entryFromCar({
+    stock, year: f.year.value.trim(), make: f.make.value.trim(), model: f.model.value.trim(),
+    color: f.color.value.trim(), vin: f.vin.value.trim()
+  }, date, "manual");
+  log.entries.push(e);
+  log.removed = log.removed.filter(k => k !== entryKey(stock, date));
+  saveLog();
+  $("manDlg").close();
+  $("q").value = "";
+  $("month").value = date.slice(0, 7);
+  render();
+  const d = document.querySelector(`details.day[data-day="${date}"]`);
+  if (d) d.open = true;
+};
+
+// Export CSV (all logged units)
+$("export").onclick = () => {
+  const cols = ["date", "stock", "year", "make", "model", "color", "vin", "source"];
+  const rows = log.entries.slice().sort((a, b) => a.date.localeCompare(b.date) || String(a.stock).localeCompare(String(b.stock)));
+  const lines = [cols.join(",")].concat(rows.map(e =>
+    cols.map(k => `"${String(e[k] ?? "").replaceAll('"', '""')}"`).join(",")));
+  const blob = new Blob([lines.join("\n") + "\n"], { type: "text/csv" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "car-count-" + todayLocal() + ".csv";
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+};
+
+// Copy summary
+function summaryText() {
+  const today = todayLocal();
+  const curMonth = today.slice(0, 7);
+  const ym = $("month").value || curMonth;
+  const E = log.entries;
+  const lines = [];
+  lines.push("Car Count — units moved to Lot 1");
+  lines.push(`Today (${shortDate(today)}): ${E.filter(e => e.date === today).length}`);
+  lines.push(`${monthLabel(curMonth)}: ${E.filter(e => e.date.startsWith(curMonth)).length}`);
+  const inMonth = sortEntries(E.filter(e => e.date.startsWith(ym)));
+  lines.push("");
+  lines.push(`${monthLabel(ym)} by day (${plural(inMonth.length, "unit")}):`);
+  if (!inMonth.length) lines.push("  none");
+  const byDay = new Map();
+  for (const e of inMonth) { if (!byDay.has(e.date)) byDay.set(e.date, []); byDay.get(e.date).push(e); }
+  for (const [day, list] of byDay) {
+    lines.push(`${shortDate(day)}: ${list.length}`);
+    for (const e of list) {
+      lines.push(`  - ${e.stock} ${[e.year, e.make, e.model].filter(Boolean).join(" ")}${e.color ? " " + e.color : ""}${e.vin ? " (VIN " + e.vin + ")" : ""}${e.source === "manual" ? " [manual]" : ""}`);
+    }
+  }
+  const byMonth = new Map();
+  for (const e of E) byMonth.set(e.date.slice(0, 7), (byMonth.get(e.date.slice(0, 7)) || 0) + 1);
+  lines.push("");
+  lines.push("Monthly totals:");
+  const ms = [...byMonth.keys()].sort().reverse();
+  if (!ms.length) lines.push("  none");
+  for (const m of ms) lines.push(`${monthLabel(m)}: ${byMonth.get(m)}`);
+  return lines.join("\n");
+}
+$("copy").onclick = async () => {
+  const text = summaryText();
+  $("copyText").textContent = text;
+  try {
+    await navigator.clipboard.writeText(text);
+    $("copyMsg").textContent = "Copied to clipboard.";
+  } catch (err) {
+    $("copyMsg").textContent = "Clipboard blocked — select and copy the text below.";
+  }
+  $("copyDlg").showModal();
+};
+$("copyClose").onclick = () => $("copyDlg").close();
+
+// ---- Start -----------------------------------------------------------------
+loadLog();
+$("app").hidden = false;
+$("bar").hidden = false;
+loading = true;
+render();
+loading = false;
+refresh();
+})();
+</script>
+</body>
+</html>
