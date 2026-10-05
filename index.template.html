@@ -326,7 +326,7 @@ function matches(car, tokens) {
 function filteredList(cars, q) {
   const tokens = tokensOf(q);
   let list = cars.filter(c => {
-    if (filter === "issues") return !!c.issues && c.status === "On lot";
+    if (filter === "issues") return !!c.issues && c.status === "On lot" && (c.lot === "9" || c.lot === "12");
     if (filter === "9" || filter === "12" || filter === "AAA") {
       if (c.lot !== filter) return false;
       if (c.status !== "On lot") return false;
@@ -407,16 +407,12 @@ function renderSections(list, q) {
   if (filter === "issues") {
     const g9 = list.filter(c => c.lot === "9").sort(sortWithin);
     const g12 = list.filter(c => c.lot === "12").sort(sortWithin);
-    const gAAA = list.filter(c => c.lot === "AAA").sort(sortWithin);
     let html = "";
     if (g9.length) {
       html += `<section class="lot-section"><h2 class="lot-head lot-head-9">Lot 9 · ${g9.length} cars</h2>${g9.map(cardHTML).join("")}</section>`;
     }
     if (g12.length) {
       html += `<section class="lot-section"><h2 class="lot-head lot-head-12">Lot 12 · ${g12.length} cars</h2>${g12.map(cardHTML).join("")}</section>`;
-    }
-    if (gAAA.length) {
-      html += `<section class="lot-section"><h2 class="lot-head lot-head-AAA">AAA · ${gAAA.length} cars</h2>${gAAA.map(cardHTML).join("")}</section>`;
     }
     return html || `<p class="sub">No cars match.</p>`;
   }
@@ -426,13 +422,13 @@ function renderSections(list, q) {
 function show() {
   const cars = mergeCars();
   const q = $("q").value;
-  const on = cars.filter(c => c.status === "On lot");
+  // Counts are Lot 9/12 only — AAA is a separate holding place and must not inflate On lot / Issues
+  const onLots = cars.filter(c => c.status === "On lot" && (c.lot === "9" || c.lot === "12"));
   $("counts").innerHTML = [
-    [on.length, "On lot"],
-    [on.filter(c => c.lot === "9").length, "Lot 9"],
-    [on.filter(c => c.lot === "12").length, "Lot 12"],
-    [on.filter(c => c.lot === "AAA").length, "AAA"],
-    [on.filter(c => c.issues).length, "Issues"]
+    [onLots.length, "On lot"],
+    [onLots.filter(c => c.lot === "9").length, "Lot 9"],
+    [onLots.filter(c => c.lot === "12").length, "Lot 12"],
+    [onLots.filter(c => c.issues).length, "Issues"]
   ].map(([n, l]) => `<div><b>${n}</b><span>${l}</span></div>`).join("");
   const list = filteredList(cars, q);
   $("list").innerHTML = renderSections(list, q);
