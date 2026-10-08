@@ -106,6 +106,24 @@
     cursor:pointer;
   }
   #inopWrap input[type="checkbox"] { width:auto; accent-color:#8a5050; }
+
+  .nocount-badge {
+    display:inline-block; font-size:11px; font-weight:700; letter-spacing:0.03em;
+    padding:3px 9px; border-radius:99px; margin:6px 6px 0 0;
+    background:#3a3048; color:#d8c8f0; border:1px solid #7a6fa8;
+  }
+  #countWrap { display:none; margin-top:4px; }
+  #countWrap.on { display:block; }
+  #countWrap label.count-check {
+    display:flex; align-items:center; gap:8px; color:var(--ink); font-size:14px; margin:4px 0;
+    cursor:pointer;
+  }
+  #countWrap input[type="checkbox"] { width:auto; accent-color:#7a6fa8; }
+  #countDlg .count-btns { display:flex; flex-direction:column; gap:8px; margin-top:12px; }
+  #countDlg .count-btns button { width:100%; padding:12px; font-size:15px; }
+  #countDlg .count-btns button.yes { background:var(--teal-deep); border-color:var(--teal-deep); font-weight:650; }
+  #countDlg .count-btns button.no { background:#3a3048; border-color:#7a6fa8; }
+  #countDlg .count-btns button.abort { background:#24303a; }
 </style>
 </head>
 <body>
@@ -161,6 +179,9 @@
     <div id="inopWrap">
       <label class="inop-check"><input type="checkbox" name="inop" id="inopCheck"> Inop unit</label>
     </div>
+    <div id="countWrap">
+      <label class="count-check"><input type="checkbox" name="countsInCount" id="countCheck"> Counts in Car Count</label>
+    </div>
     <label>Stock #</label>
     <input name="stock" required>
     <label>Year / make / model</label>
@@ -205,6 +226,15 @@
     <button class="primary" type="button" id="moveConfirm">Move</button>
   </div>
 </dialog>
+<dialog id="countDlg">
+  <strong>Count this car in Car Count?</strong>
+  <p class="sub" id="countMsg"></p>
+  <div class="count-btns">
+    <button type="button" class="yes" id="countYes">Yes — count this car</button>
+    <button type="button" class="no" id="countNo">No — move without counting</button>
+    <button type="button" class="abort" id="countAbort">Cancel move</button>
+  </div>
+</dialog>
 <dialog id="copyDlg">
   <strong>Copy for Grok</strong>
   <p class="sub" id="copyMsg"></p>
@@ -213,7 +243,7 @@
     <button type="button" id="copyClose">Close</button>
   </div>
 </dialog>
-<script src="sync.js"></script>
+<script src="sync.js?v=3"></script>
 <script>
 (function () {
 "use strict";
@@ -222,7 +252,7 @@ const SEED = /*SEED_JSON*/null/*END_SEED*/;
 const KEY = "davids-lots-v2";
 const OLD_KEY = "davids-lots-v1";
 const CARCOUNT_KEY = "car-count-log-v1";
-const TRACKED = ["lot","year","make","model","color","vin","miles","purchased","price","issues","status","workStatus","flag","photo","inop"];
+const TRACKED = ["lot","year","make","model","color","vin","miles","purchased","price","issues","status","workStatus","flag","photo","inop","noCount","lot1Date"];
 const WORK_STATUS = {
   "12": [
     { value: "Ready for lot", color: "green" },
@@ -306,6 +336,48 @@ function syncInopWrap(lot) {
   }
 }
 
+let editingPrevLot = null; // lot of the car when the editor opened
+function syncCountWrap(lot) {
+  // Checkbox only for a car already on Lot 1. Moving into Lot 1 asks Yes/No on Save.
+  const wrap = $("countWrap");
+  if (!wrap) return;
+  if (String(lot) === "1" && editingPrevLot === "1") wrap.classList.add("on");
+  else wrap.classList.remove("on");
+}
+
+/**
+ * Styled Yes / No / Cancel prompt. Resolves true=count, false=don't count, null=cancel.
+ * mode "move": before a Lot 1 move (Cancel aborts the move).
+ * mode "change": change of mind for a car already on Lot 1.
+ */
+function askCountInCarCount(stock, mode, fromLabel, currentlyCounted) {
+  return new Promise((resolve) => {
+    const dlg = $("countDlg");
+    if (mode === "change") {
+      $("countMsg").textContent = `Stock ${stock} is on Lot 1 and is currently ${currentlyCounted ? "counted" : "not counted"} in Car Count.`;
+      $("countNo").textContent = "No — don't count it";
+      $("countAbort").textContent = "Cancel";
+    } else {
+      $("countMsg").textContent = `Moving stock ${stock}${fromLabel ? " from " + fromLabel : ""} to Lot 1.`;
+      $("countNo").textContent = "No — move without counting";
+      $("countAbort").textContent = "Cancel move";
+    }
+    function done(v) {
+      $("countYes").onclick = null;
+      $("countNo").onclick = null;
+      $("countAbort").onclick = null;
+      dlg.onclose = null;
+      try { dlg.close(); } catch (e) {}
+      resolve(v);
+    }
+    $("countYes").onclick = () => done(true);
+    $("countNo").onclick = () => done(false);
+    $("countAbort").onclick = () => done(null);
+    dlg.onclose = () => done(null);
+    dlg.showModal();
+  });
+}
+
 function lotRank(lot) {
   return LOT_ORDER[normLot(lot)] ?? 99;
 }
@@ -335,7 +407,9 @@ function stripId(s) {
 }
 
 function today() {
-  return new Date().toISOString().slice(0, 10);
+  // Local calendar date (toISOString() is UTC and rolls to tomorrow after 8 PM ET)
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 }
 
 function seedByStock() {
@@ -363,6 +437,15 @@ function diffAgainstSeed(car, seed, opts) {
   for (const k of TRACKED) {
     let a = car[k];
     let b = seed[k];
+    if (k === "noCount" || k === "lot1Date") {
+      // Lot 1 count fields never exist in SEED. Keep truthy values; keep an
+      // explicit false/"" when the previous override had the field so the
+      // cleared value wins the cloud merge instead of a stale true coming back.
+      const v = k === "noCount" ? !!a : String(a ?? "");
+      const prevO = opts && opts.prevOverride;
+      if (v || (prevO && Object.prototype.hasOwnProperty.call(prevO, k))) o[k] = v;
+      continue;
+    }
     if (k === "inop") {
       a = !!a;
       b = !!b;
@@ -449,7 +532,7 @@ function sanitizeOverrides() {
     // Rebuild a clean diff from the effective local view, preferring SEED
     // for empty workStatus/issues. Also handles full-car objects stored as overrides.
     const localView = Object.assign({}, seed, o);
-    const d = diffAgainstSeed(localView, seed, { preferSeedIfLocalEmpty: true });
+    const d = diffAgainstSeed(localView, seed, { preferSeedIfLocalEmpty: true, prevOverride: o });
     const fieldKeys = Object.keys(d).filter(k => k !== "updated");
     if (!fieldKeys.length) {
       changed = true;
@@ -542,10 +625,17 @@ function saveCarcount(doc, opts) {
   }
 }
 
-function noteLot1Move(car) {
+function noteLot1Move(car, date) {
   if (!car || String(car.lot) !== "1") return;
-  const date = car.updated || today();
-  const next = LotSync.appendLot1Move(loadCarcount(), car, date);
+  const d = date || car.lot1Date || car.updated || today();
+  const next = LotSync.appendLot1Move(loadCarcount(), car, d);
+  saveCarcount(next);
+}
+
+function uncountLot1Move(car, date) {
+  if (!car) return;
+  const d = date || car.lot1Date || car.updated || today();
+  const next = LotSync.uncountLot1Stint(loadCarcount(), car.stock, d);
   saveCarcount(next);
 }
 
@@ -574,6 +664,14 @@ function mergeCars() {
     // Inop only applies on Lot 9; coerce boolean and clear off Lot 9
     if (c.lot !== "9") c.inop = false;
     else c.inop = !!c.inop;
+    // noCount / lot1Date only apply while the car is on Lot 1
+    if (c.lot !== "1") {
+      c.noCount = false;
+      c.lot1Date = "";
+    } else {
+      c.noCount = !!c.noCount;
+      c.lot1Date = (/^\d{4}-\d{2}-\d{2}$/.test(String(c.lot1Date || ""))) ? c.lot1Date : "";
+    }
   }
   return out;
 }
@@ -668,20 +766,26 @@ function cardHTML(c) {
   const dayStr = d !== "" ? " · " + d + " days" : "";
   const purchased = c.purchased || "no purchase date";
   const inopBadge = isInop(c) ? `<div class="inop-badge">INOP</div>` : "";
+  const noCountBadge = (normLot(c.lot) === "1" && c.noCount)
+    ? `<div class="nocount-badge">Not counted</div>` : "";
   const wsBadge = ws
     ? `<div class="ws-badge ws-${wsColor}">${esc(ws)}</div>`
+    : "";
+  const countToggle = (normLot(c.lot) === "1")
+    ? `<button type="button" data-count="${esc(c.stock)}" title="Counts in Car Count">${c.noCount ? "Count: No" : "Count: Yes"}</button>`
     : "";
   return `<article class="card ${lotCls}${has}${wsBorder}${inopCls}" data-stock="${esc(c.stock)}">
     <div class="top"><span class="stock">${esc(c.stock)}</span><span class="lot ${lotCls}">${esc(lotLabel(c.lot))}</span></div>
     <div class="meta">${esc(c.year)} ${esc(c.make)} ${esc(c.model)}${color}</div>
     <div class="meta">${mi}${esc(purchased)}${dayStr}</div>
     <div class="meta vin">VIN (last 6): ${esc(c.vin || "—")}</div>
-    ${inopBadge}${wsBadge}
+    ${inopBadge}${noCountBadge}${wsBadge}
     ${c.issues ? `<div class="issue">${esc(c.issues)}</div>` : ""}
     ${c.flag ? `<div class="warn">${esc(c.flag)}</div>` : ""}
     <div class="actions">
       <button type="button" data-edit="${esc(c.stock)}">Edit</button>
       <button type="button" data-move="${esc(c.stock)}">Move lot</button>
+      ${countToggle}
     </div>
   </article>`;
 }
@@ -830,43 +934,79 @@ function openEdit(stock) {
   fillWorkStatusOptions(c.lot || "9", c.workStatus || "");
   syncInopWrap(c.lot || "9");
   $("inopCheck").checked = (String(c.lot || "9") === "9") && isInop(c);
+  editingPrevLot = stock ? normLot(c.lot) : null;
+  syncCountWrap(c.lot || "9");
+  $("countCheck").checked = (String(c.lot || "") === "1") ? !c.noCount : true;
   $("preview").style.display = c.photo ? "block" : "none";
   $("preview").src = c.photo || "";
   delete $("preview").dataset.pending;
   $("dlg").showModal();
 }
 
-function persistCar(car, isNew) {
+/**
+ * Persist a car. opts:
+ *   countInCarCount: true|false|undefined
+ *     - true: append carcount entry for this Lot 1 stint
+ *     - false: flag noCount, do not append (and uncount any auto entry)
+ *     - undefined: keep existing noCount / carcount state (edit of other fields)
+ *   prev: previous merged car (lot / noCount / lot1Date before this save)
+ */
+function persistCar(car, isNew, opts) {
+  opts = opts || {};
   const bySeed = seedByStock();
-  const prevLot = (() => {
-    try {
-      const m = findMerged(car.stock);
-      return m ? m.lot : null;
-    } catch (e) { return null; }
+  const prev = opts.prev || (function () {
+    try { return findMerged(car.stock) || null; } catch (e) { return null; }
   })();
+  const prevLot = prev ? normLot(prev.lot) : null;
+  const nextLot = normLot(car.lot);
+  const arrivingLot1 = nextLot === "1" && prevLot !== "1";
+  const leavingLot1 = prevLot === "1" && nextLot !== "1";
+
+  // Normalize Lot 1 count fields on the car being saved
+  if (nextLot !== "1") {
+    car.noCount = false;
+    car.lot1Date = "";
+  } else if (arrivingLot1) {
+    car.lot1Date = car.updated || today();
+    if (opts.countInCarCount === false) car.noCount = true;
+    else if (opts.countInCarCount === true) car.noCount = false;
+    else car.noCount = !!car.noCount;
+  } else {
+    // Staying on Lot 1
+    if (!car.lot1Date) car.lot1Date = (prev && prev.lot1Date) || LotSync.lot1StintDate(prev || car, loadCarcount(), today());
+    if (opts.countInCarCount === false) car.noCount = true;
+    else if (opts.countInCarCount === true) car.noCount = false;
+    else car.noCount = !!car.noCount;
+  }
+
   if (isNew || !bySeed[car.stock]) {
     const idx = store.added.findIndex(x => x.stock === car.stock);
-    const prev = idx >= 0 ? store.added[idx] : null;
+    const prevAdded = idx >= 0 ? store.added[idx] : null;
     const stamped = Object.assign({}, car, {
-      _addedAt: (prev && prev._addedAt) || Date.now(),
-      _ts: LotSync.stampOverride(prev, car)._ts
+      _addedAt: (prevAdded && prevAdded._addedAt) || Date.now(),
+      _ts: LotSync.stampOverride(prevAdded, car)._ts
     });
-    // stampOverride used full car; rebuild _ts only for tracked-ish keys
     if (idx >= 0) store.added[idx] = stamped;
     else store.added.push(stamped);
   } else {
-    const d = diffAgainstSeed(car, bySeed[car.stock], { preferSeedIfLocalEmpty: true });
+    const prevO = store.overrides[car.stock];
+    const d = diffAgainstSeed(car, bySeed[car.stock], { preferSeedIfLocalEmpty: true, prevOverride: prevO });
     const fieldKeys = Object.keys(d).filter(k => k !== "updated" && k !== "_ts");
     if (fieldKeys.length || d.updated) {
-      const prev = store.overrides[car.stock];
-      store.overrides[car.stock] = LotSync.stampOverride(prev, d);
+      store.overrides[car.stock] = LotSync.stampOverride(prevO, d);
     } else {
       delete store.overrides[car.stock];
     }
   }
   saveStore();
-  // If now on Lot 1 (new move or already there with update), append carcount entry
-  if (String(car.lot) === "1") noteLot1Move(car);
+
+  // Sync carcount for this Lot 1 stint (only when arriving or the choice changed)
+  if (nextLot === "1") {
+    const stint = car.lot1Date || car.updated || today();
+    const wasNoCount = !arrivingLot1 && !!(prev && prev.noCount);
+    if (car.noCount && (arrivingLot1 || !wasNoCount)) uncountLot1Move(car, stint);
+    else if (!car.noCount && (arrivingLot1 || wasNoCount)) noteLot1Move(car, stint);
+  }
 }
 
 function changesText() {
@@ -886,6 +1026,7 @@ function changesText() {
     const changes = [];
     if (String(c.lot) !== String(seed.lot)) changes.push(`lot ${seed.lot}→${c.lot}`);
     if (!!c.inop !== !!seed.inop) changes.push(`inop ${!!seed.inop}→${!!c.inop}`);
+    if (!!c.noCount !== !!seed.noCount) changes.push(`noCount ${!!seed.noCount}→${!!c.noCount}`);
     if (String(c.workStatus || "") !== String(seed.workStatus || "")) changes.push(`workStatus ${seed.workStatus || "(none)"}→${c.workStatus || "(none)"}`);
     if (String(c.issues || "") !== String(seed.issues || "")) changes.push(`issues: ${c.issues || "(cleared)"}`);
     if (String(c.color || "") !== String(seed.color || "")) changes.push(`color ${seed.color || "(blank)"}→${c.color || "(blank)"}`);
@@ -992,6 +1133,7 @@ async function bootWithSync() {
 $("list").addEventListener("click", (e) => {
   const edit = e.target.closest("[data-edit]");
   const move = e.target.closest("[data-move]");
+  const countBtn = e.target.closest("[data-count]");
   if (edit) {
     openEdit(edit.getAttribute("data-edit"));
     return;
@@ -1001,8 +1143,23 @@ $("list").addEventListener("click", (e) => {
     const c = findMerged(stock);
     if (!c) return;
     openMove(c);
+    return;
+  }
+  if (countBtn) {
+    changeCountFromCard(countBtn.getAttribute("data-count"));
   }
 });
+
+async function changeCountFromCard(stock) {
+  const c = findMerged(stock);
+  if (!c || normLot(c.lot) !== "1") return;
+  const ans = await askCountInCarCount(stock, "change", "", !c.noCount);
+  if (ans === null || ans === !c.noCount) return; // cancelled or unchanged
+  const stint = c.lot1Date || LotSync.lot1StintDate(c, loadCarcount(), today());
+  const updated = Object.assign({}, c, { noCount: !ans, lot1Date: stint });
+  persistCar(updated, !seedByStock()[stock], { prev: c, countInCarCount: ans });
+  show();
+}
 
 let movingStock = null;
 
@@ -1033,7 +1190,7 @@ function openMove(c) {
 
 $("moveCancel").onclick = () => { movingStock = null; $("moveDlg").close(); };
 
-$("moveConfirm").onclick = () => {
+$("moveConfirm").onclick = async () => {
   if (!movingStock) return;
   const c = findMerged(movingStock);
   if (!c) { $("moveDlg").close(); return; }
@@ -1044,7 +1201,17 @@ $("moveConfirm").onclick = () => {
     alert("Pick a different location.");
     return;
   }
-  if (!confirm(`Move stock ${c.stock} from ${curKey === "9inop" ? "Lot 9 Inop" : lotLabel(c.lot)} to ${dest.label}?`)) return;
+  const fromLabel = curKey === "9inop" ? "Lot 9 Inop" : lotLabel(c.lot);
+  let countChoice = undefined; // undefined = not arriving at Lot 1
+  const arrivingLot1 = dest.lot === "1" && normLot(c.lot) !== "1";
+  if (arrivingLot1) {
+    // Yes / No / Cancel dialog replaces the OK/Cancel confirm for Lot 1 moves
+    $("moveDlg").close();
+    const ans = await askCountInCarCount(c.stock, "move", fromLabel);
+    if (ans === null) { movingStock = null; return; } // cancelled — nothing moves
+    countChoice = ans;
+  } else if (!confirm(`Move stock ${c.stock} from ${fromLabel} to ${dest.label}?`)) return;
+
   let nextWs = c.workStatus || "";
   const allowed = (WORK_STATUS[dest.lot] || []).map(o => o.value);
   if (nextWs && !allowed.includes(nextWs)) nextWs = "";
@@ -1054,9 +1221,12 @@ $("moveConfirm").onclick = () => {
     workStatus: nextWs,
     updated: today()
   });
-  persistCar(updated, !seedByStock()[movingStock]);
+  persistCar(updated, !seedByStock()[movingStock], {
+    prev: c,
+    countInCarCount: countChoice
+  });
   movingStock = null;
-  $("moveDlg").close();
+  try { $("moveDlg").close(); } catch (e) {}
   show();
 };
 
@@ -1080,6 +1250,7 @@ $("form").lot.addEventListener("change", () => {
   const f = $("form");
   fillWorkStatusOptions(f.lot.value, f.workStatus.value);
   syncInopWrap(f.lot.value);
+  syncCountWrap(f.lot.value);
 });
 
 $("q").addEventListener("input", show);
@@ -1114,7 +1285,7 @@ $("form").photo.addEventListener("change", () => {
   img.src = url;
 });
 
-$("form").onsubmit = (e) => {
+$("form").onsubmit = async (e) => {
   e.preventDefault();
   const f = new FormData(e.target);
   const stock = String(f.get("stock")).trim();
@@ -1133,6 +1304,7 @@ $("form").onsubmit = (e) => {
     alert("That stock # was already added locally.");
     return;
   }
+  const prevLot = existing ? normLot(existing.lot) : null;
   base.stock = stock;
   base.lot = String(f.get("lot"));
   base.year = String(f.get("year") || "").trim();
@@ -1150,13 +1322,30 @@ $("form").onsubmit = (e) => {
   if (base.workStatus && !allowed.includes(base.workStatus)) base.workStatus = "";
   base.updated = today();
   if ($("preview").dataset.pending) base.photo = $("preview").dataset.pending;
-  persistCar(base, isNew || !bySeed[stock]);
-  $("dlg").close();
+
+  let countChoice = undefined;
+  const nextLot = normLot(base.lot);
+  const arrivingLot1 = nextLot === "1" && prevLot !== "1";
+  if (arrivingLot1) {
+    $("dlg").close();
+    const ans = await askCountInCarCount(stock, "move", prevLot ? (existing && isInop(existing) ? "Lot 9 Inop" : lotLabel(prevLot)) : "");
+    if (ans === null) { $("dlg").showModal(); return; } // move cancelled — nothing saved; back to the editor
+    countChoice = ans;
+  } else if (nextLot === "1" && prevLot === "1") {
+    // Already on Lot 1: honor the Counts in Car Count checkbox
+    countChoice = !!$("countCheck").checked;
+  }
+
+  persistCar(base, isNew || !bySeed[stock], {
+    prev: existing,
+    countInCarCount: countChoice
+  });
+  try { $("dlg").close(); } catch (err) {}
   show();
 };
 
 function csv() {
-  const cols = ["stock","lot","year","make","model","color","vin","miles","purchased","price","issues","status","workStatus","inop","updated","flag"];
+  const cols = ["stock","lot","year","make","model","color","vin","miles","purchased","price","issues","status","workStatus","inop","noCount","lot1Date","updated","flag"];
   const cars = mergeCars();
   const lines = [cols.join(",")].concat(cars.map(c =>
     cols.map(k => `"${String(c[k] ?? "").replaceAll('"','""')}"`).join(",")

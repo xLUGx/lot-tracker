@@ -115,30 +115,55 @@ function mergeTrackerDocs(local, server) {
 
 function entryKey(stock, date) { return String(stock) + "|" + date; }
 
+/**
+ * Is this carcount entry counted?
+ * - `excluded: true` (with `_ts`) = un-counted/removed; kept in the log, never deleted.
+ * - Legacy entries (no `_ts`) are hidden by a matching "stock|date" key in `removed`.
+ * - Entries that carry `_ts` decide for themselves (so a stint can be counted again).
+ */
+function isEntryCounted(e, removedSet) {
+  if (!e || e.excluded) return false;
+  if (!e._ts && removedSet && removedSet.has(entryKey(e.stock, e.date))) return false;
+  return true;
+}
+
+function countedEntries(doc) {
+  const d = doc || {};
+  const removedSet = new Set(Array.isArray(d.removed) ? d.removed : []);
+  return (Array.isArray(d.entries) ? d.entries : []).filter(function (e) {
+    return isEntryCounted(e, removedSet);
+  });
+}
+
 function mergeCarcountDocs(local, server) {
   const L = local || { v: 1, entries: [], active: {}, removed: [] };
   const S = server || { v: 1, entries: [], active: {}, removed: [] };
   const byId = new Map();
   for (const e of [...(S.entries || []), ...(L.entries || [])]) {
     if (!e || !e.id) continue;
-    if (!byId.has(e.id)) byId.set(e.id, e);
+    const prev = byId.get(e.id);
+    // Same entry edited on two phones: newest _ts wins (server wins ties).
+    if (!prev || (e._ts || 0) > (prev._ts || 0)) byId.set(e.id, e);
   }
-  // Dedupe by stock+date (keep earliest loggedAt, stable id)
+  // Dedupe by stock+date: latest decision (_ts) wins, then earliest loggedAt.
   const bySD = new Map();
   for (const e of byId.values()) {
     const k = entryKey(e.stock, e.date);
     const prev = bySD.get(k);
-    if (!prev) bySD.set(k, e);
-    else {
-      const a = prev.loggedAt || "";
-      const b = e.loggedAt || "";
-      bySD.set(k, b && a && b < a ? e : prev);
-    }
+    if (!prev) { bySD.set(k, e); continue; }
+    const ta = prev._ts || 0;
+    const tb = e._ts || 0;
+    if (tb !== ta) { if (tb > ta) bySD.set(k, e); continue; }
+    const a = prev.loggedAt || "";
+    const b = e.loggedAt || "";
+    bySD.set(k, b && a && b < a ? e : prev);
   }
   const removed = [...new Set([...(S.removed || []), ...(L.removed || [])])];
   const removedSet = new Set(removed);
+  // Legacy removed entries drop out as before; entries with _ts are kept
+  // (excluded ones stay in the log so nothing is ever deleted).
   const entries = [...bySD.values()].filter(
-    (e) => !removedSet.has(entryKey(e.stock, e.date))
+    (e) => e._ts || !removedSet.has(entryKey(e.stock, e.date))
   );
   const active = {};
   for (const src of [S.active || {}, L.active || {}]) {
@@ -379,35 +404,121 @@ SyncEngine.prototype.startAutoSync = function () {
   }, 60000);
 };
 
-/** Append a Lot 1 move into carcount doc (dedupe by stock+date). */
-function appendLot1Move(carcount, car, date) {
+function normCarcount(carcount) {
   const log = deepClone(carcount || { v: 1, entries: [], active: {}, removed: [] });
   if (!Array.isArray(log.entries)) log.entries = [];
-  if (!log.active) log.active = {};
+  if (!log.active || typeof log.active !== "object") log.active = {};
   if (!Array.isArray(log.removed)) log.removed = [];
+  log.v = 1;
+  return log;
+}
+
+function newEntryId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+/**
+ * Count a Lot 1 stint in carcount (dedupe by stock+date).
+ * If that stint's entry was un-counted earlier it is revived (same id);
+ * otherwise a new entry is appended. Always stamps _ts so it syncs.
+ */
+function appendLot1Move(carcount, car, date) {
+  const log = normCarcount(carcount);
   const stock = String(car.stock || "").trim();
   if (!stock || !date) return log;
-  const k = entryKey(stock, date);
-  if (log.removed.indexOf(k) >= 0) return log;
-  if (log.entries.some(function (e) { return e.stock === stock && e.date === date; })) {
+  const removedSet = new Set(log.removed);
+  const same = log.entries.filter(function (e) { return e && e.stock === stock && e.date === date; });
+  if (same.some(function (e) { return isEntryCounted(e, removedSet); })) {
     log.active[stock] = { date: date, since: date };
     return log;
   }
-  const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-  log.entries.push({
-    id: id,
-    stock: stock,
-    year: String(car.year ?? ""),
-    make: String(car.make ?? ""),
-    model: String(car.model ?? ""),
-    vin: String(car.vin ?? ""),
-    color: String(car.color ?? ""),
-    date: date,
-    source: "tracker",
-    loggedAt: new Date().toISOString()
-  });
+  const now = Date.now();
+  const revive = same[same.length - 1];
+  if (revive) {
+    revive.excluded = false;
+    revive._ts = now;
+  } else {
+    log.entries.push({
+      id: newEntryId(),
+      stock: stock,
+      year: String(car.year ?? ""),
+      make: String(car.make ?? ""),
+      model: String(car.model ?? ""),
+      vin: String(car.vin ?? ""),
+      color: String(car.color ?? ""),
+      date: date,
+      source: "tracker",
+      loggedAt: new Date(now).toISOString(),
+      _ts: now
+    });
+  }
   log.active[stock] = { date: date, since: date };
   return log;
+}
+
+/**
+ * Un-count a Lot 1 stint: mark counted (non-manual) entries for this stock
+ * dated on/after the stint date as excluded (kept, never deleted) and add the
+ * legacy "stock|date" tombstone so older app copies do not re-add it.
+ */
+function uncountLot1Stint(carcount, stock, date) {
+  const log = normCarcount(carcount);
+  stock = String(stock || "").trim();
+  if (!stock || !date) return log;
+  const removedSet = new Set(log.removed);
+  const now = Date.now();
+  for (const e of log.entries) {
+    if (!e || e.stock !== stock || !(e.date >= date)) continue;
+    if (e.source === "manual") continue; // manual logs always count
+    if (!isEntryCounted(e, removedSet)) continue;
+    e.excluded = true;
+    e._ts = now;
+    const k = entryKey(stock, e.date);
+    if (log.removed.indexOf(k) < 0) log.removed.push(k);
+  }
+  const k0 = entryKey(stock, date);
+  if (log.removed.indexOf(k0) < 0) log.removed.push(k0);
+  delete log.active[stock];
+  return log;
+}
+
+/** Best guess at the current Lot 1 stint date for a car already on Lot 1. */
+function lot1StintDate(car, carcount, today) {
+  const iso = /^\d{4}-\d{2}-\d{2}$/;
+  if (car && iso.test(String(car.lot1Date || ""))) return car.lot1Date;
+  const stock = String(car && car.stock || "");
+  const counted = countedEntries(carcount).filter(function (e) { return e.stock === stock; });
+  const act = carcount && carcount.active && carcount.active[stock];
+  if (act && act.date && counted.some(function (e) { return e.date === act.date; })) return act.date;
+  if (counted.length) {
+    return counted.map(function (e) { return e.date; }).sort().pop();
+  }
+  if (act && iso.test(String(act.date || ""))) return act.date;
+  const u = String(car && car.updated || "");
+  if (iso.test(u)) return today && u > today ? today : u;
+  return today;
+}
+
+/**
+ * Self-heal: a Lot 1 car marked "not counted" must not have counted
+ * auto/tracker entries for that stint (e.g. logged by an older app copy).
+ * Returns { log, changed }.
+ */
+function reconcileNoCount(carcount, cars) {
+  let log = normCarcount(carcount);
+  let changed = false;
+  for (const c of cars || []) {
+    if (!c || String(c.lot) !== "1" || !c.noCount) continue;
+    const date = String(c.lot1Date || "");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+    const stock = String(c.stock || "");
+    const removedSet = new Set(log.removed);
+    const hit = log.entries.some(function (e) {
+      return e && e.stock === stock && e.date >= date && e.source !== "manual" && isEntryCounted(e, removedSet);
+    });
+    if (hit) { log = uncountLot1Stint(log, stock, date); changed = true; }
+  }
+  return { log: log, changed: changed };
 }
 
 /** Stamp _ts on override fields that changed. */
@@ -505,6 +616,11 @@ global.LotSync = {
   ensureTrackerTimestamps: ensureTrackerTimestamps,
   stampOverride: stampOverride,
   appendLot1Move: appendLot1Move,
+  uncountLot1Stint: uncountLot1Stint,
+  lot1StintDate: lot1StintDate,
+  reconcileNoCount: reconcileNoCount,
+  isEntryCounted: isEntryCounted,
+  countedEntries: countedEntries,
   isEmptyTracker: isEmptyTracker,
   isEmptyCarcount: isEmptyCarcount,
   getSavedPin: getSavedPin,

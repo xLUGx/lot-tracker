@@ -160,7 +160,7 @@
   </div>
 </dialog>
 
-<script src="../sync.js"></script>
+<script src="../sync.js?v=3"></script>
 <script>
 (function () {
 "use strict";
@@ -205,7 +205,7 @@ function shortDate(iso) {
 function plural(n, w) { return n + " " + w + (n === 1 ? "" : "s"); }
 
 // ---- Lot Tracker merge logic (ported read-only from Lot Tracker) --------
-const TRACKED = ["lot","year","make","model","color","vin","miles","purchased","price","issues","status","workStatus","flag","photo","inop"];
+const TRACKED = ["lot","year","make","model","color","vin","miles","purchased","price","issues","status","workStatus","flag","photo","inop","noCount","lot1Date"];
 const SEED_PREFERS_IF_LOCAL_EMPTY = new Set(["workStatus", "issues", "lot", "status"]);
 
 function normLot(lot) {
@@ -229,7 +229,7 @@ function diffAgainstSeed(car, seed, opts) {
   for (const k of TRACKED) {
     let a = car[k];
     let b = seed[k];
-    if (k === "inop") {
+    if (k === "inop" || k === "noCount") {
       a = !!a; b = !!b;
       if (a === b) continue;
       o[k] = a;
@@ -315,7 +315,11 @@ function mergeCars(SEED, store) {
   for (const a of store.added) {
     if (a && a.stock && !bySeed[a.stock]) out.push(Object.assign({}, a));
   }
-  for (const c of out) c.lot = normLot(c.lot);
+  for (const c of out) {
+    c.lot = normLot(c.lot);
+    // "Not counted" only applies while the car is on Lot 1
+    c.noCount = c.lot === "1" && !!c.noCount;
+  }
   return out;
 }
 
@@ -413,12 +417,13 @@ function entryFromCar(c, date, source) {
     stock: String(c.stock || "").trim(),
     year: String(c.year ?? ""), make: String(c.make ?? ""), model: String(c.model ?? ""),
     vin: String(c.vin ?? ""), color: String(c.color ?? ""),
-    date, source, loggedAt: new Date().toISOString()
+    date, source, loggedAt: new Date().toISOString(), _ts: Date.now()
   };
 }
 // Date moved: tracker `updated` (set when the lot changes). Lot Tracker writes it as a UTC
 // date, which can run one day ahead late in the evening, so never allow a future date.
 function moveDate(c, today) {
+  if (isISODate(c.lot1Date)) return c.lot1Date > today ? today : c.lot1Date;
   const u = c.updated;
   if (isISODate(u)) return u > today ? today : u;
   return today; // first day Car Count saw it on Lot 1
@@ -432,6 +437,7 @@ function scan(list) {
   let added = 0;
   for (const c of onLot1) {
     const stock = String(c.stock);
+    if (c.noCount) continue; // moved to Lot 1 with "Don't count" — never auto-log this stint
     if (log.active[stock]) continue; // already logged for this stint
     const date = moveDate(c, today);
     const k = entryKey(stock, date);
@@ -444,6 +450,9 @@ function scan(list) {
   }
   // Stint ends when the car is no longer on Lot 1 (entry itself is kept forever).
   for (const s of Object.keys(log.active)) if (!here.has(s)) delete log.active[s];
+  // Self-heal: "Not counted" Lot 1 cars must not have auto/tracker entries for that stint
+  const rec = LotSync.reconcileNoCount(log, onLot1);
+  if (rec.changed) log = rec.log;
   saveLog();
   return added;
 }
@@ -512,7 +521,7 @@ function matches(e, tokens) {
 function render() {
   const today = todayLocal();
   const curMonth = today.slice(0, 7);
-  const entries = log.entries;
+  const entries = LotSync.countedEntries(log);
   $("todayN").textContent = entries.filter(e => e.date === today).length;
   $("todayLbl").textContent = "Today · " + dayLabel(today);
   $("monthN").textContent = entries.filter(e => e.date.startsWith(curMonth)).length;
@@ -592,7 +601,7 @@ function render() {
         const a = log.active[String(c.stock)];
         return `<div class="unit"><div><div><span class="stock">${esc(c.stock)}</span></div>
           <div class="meta">${esc([c.year, c.make, c.model].filter(Boolean).join(" "))}${c.color ? " · " + esc(c.color) : ""}</div>
-          <div class="meta vin">VIN (last 6): ${esc(c.vin || "—")}${a ? " · counted " + esc(shortDate(a.date)) : ""}</div></div></div>`;
+          <div class="meta vin">VIN (last 6): ${esc(c.vin || "—")}${c.noCount ? " · not counted" : (a ? " · counted " + esc(shortDate(a.date)) : "")}</div></div></div>`;
       }).join("")
     : `<p class="empty">No cars on Lot 1 right now.</p>`;
 }
@@ -606,7 +615,9 @@ document.addEventListener("click", (ev) => {
     const e = log.entries.find(x => x.id === id);
     if (!e) return;
     if (!confirm(`Remove stock ${e.stock} (${shortDate(e.date)}) from Car Count?\n\nThis only changes Car Count, not Lot Tracker.`)) return;
-    log.entries = log.entries.filter(x => x.id !== id);
+    // Never delete: mark excluded so the removal syncs and the entry stays in the log
+    e.excluded = true;
+    e._ts = Date.now();
     const k = entryKey(e.stock, e.date);
     if (!log.removed.includes(k)) log.removed.push(k); // don't auto re-add the same stint
     saveLog();
@@ -668,7 +679,7 @@ $("manForm").onsubmit = (ev) => {
   if (!raw || !isISODate(date)) return;
   const c = findTrackerCar(raw);
   const stock = c ? String(c.stock) : raw;
-  if (log.entries.some(e => e.stock === stock && e.date === date) &&
+  if (LotSync.countedEntries(log).some(e => e.stock === stock && e.date === date) &&
       !confirm(`Stock ${stock} is already logged on ${shortDate(date)}. Log it again?`)) return;
   const e = entryFromCar({
     stock, year: f.year.value.trim(), make: f.make.value.trim(), model: f.model.value.trim(),
@@ -688,7 +699,7 @@ $("manForm").onsubmit = (ev) => {
 // Export CSV (all logged units)
 $("export").onclick = () => {
   const cols = ["date", "stock", "year", "make", "model", "color", "vin", "source"];
-  const rows = log.entries.slice().sort((a, b) => a.date.localeCompare(b.date) || String(a.stock).localeCompare(String(b.stock)));
+  const rows = LotSync.countedEntries(log).sort((a, b) => a.date.localeCompare(b.date) || String(a.stock).localeCompare(String(b.stock)));
   const lines = [cols.join(",")].concat(rows.map(e =>
     cols.map(k => `"${String(e[k] ?? "").replaceAll('"', '""')}"`).join(",")));
   const blob = new Blob([lines.join("\n") + "\n"], { type: "text/csv" });
@@ -705,7 +716,7 @@ function summaryText() {
   const today = todayLocal();
   const curMonth = today.slice(0, 7);
   const ym = $("month").value || curMonth;
-  const E = log.entries;
+  const E = LotSync.countedEntries(log);
   const lines = [];
   lines.push("Car Count — units moved to Lot 1");
   lines.push(`Today (${shortDate(today)}): ${E.filter(e => e.date === today).length}`);

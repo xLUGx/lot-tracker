@@ -11,6 +11,10 @@ Both apps sync edits through a PIN-protected cloud store so Home Screen apps and
 2. Enter your 6-digit Lot code when asked (saved on this phone after unlock)
 3. Tap **Share** → **Add to Home Screen** for Lot Tracker and/or Car Count
 
+## Lot 1 and Car Count
+
+Moving a car to Lot 1 (Move lot or the edit dialog) asks **Count this car in Car Count?** — Yes counts it, No moves it without counting (card shows *Not counted*), Cancel aborts the move. Change your mind later with the card's **Count** button or the editor's *Counts in Car Count* checkbox. Car Count's manual log always counts.
+
 ## Rebuild
 
 Run `python3 build.py` to regenerate `index.html` from `index.template.html` and `seed.json`.
