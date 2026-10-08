@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build Lot Tracker HTML: inject static pre-rendered list from SEED into templates."""
 from __future__ import annotations
-import json, re, html, base64
+import json, re, html, base64, sys, time, argparse
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -11,6 +11,66 @@ TEMPLATE = ROOT / "index.template.html"
 OUT_INDEX = ROOT / "index.html"
 OUT_STANDALONE = ROOT / "lot-tracker-standalone.html"
 MANIFEST = ROOT / "manifest.webmanifest"
+SEED_TS_PATH = ROOT / "seed-ts.json"
+
+# Fields the apps track per car. Each master (SEED) field gets a timestamp in
+# seed-ts.json: 0 for the original baseline, build time when a master update
+# changes it. On phones, a user edit wins only if its _ts is >= that stamp, so a
+# newer master list can set lot/status, and a user edit made after it still wins.
+TRACKED = ["lot", "year", "make", "model", "color", "vin", "miles", "purchased",
+           "price", "issues", "status", "workStatus", "flag", "photo", "inop"]
+
+
+def norm_val(k, v):
+    if k == "inop":
+        return bool(v)
+    return "" if v is None else str(v)
+
+
+def update_seed_ts(seed: list, stamp_stocks=None, stamp_fields=None) -> dict:
+    """Return {stock: {field: [value, ts_ms]}} and write seed-ts.json."""
+    now = int(time.time() * 1000)
+    first = not SEED_TS_PATH.exists()
+    old = {} if first else json.loads(SEED_TS_PATH.read_text())
+    out = {}
+    stamp_stocks = set(stamp_stocks or [])
+    stamp_fields = list(stamp_fields or ["lot", "status"])
+    changed = 0
+    for c in seed:
+        stock = c.get("stock")
+        if not stock:
+            continue
+        prev = old.get(stock, {})
+        rec = {}
+        for k in TRACKED:
+            v = norm_val(k, c.get(k))
+            if k in prev and prev[k][0] == v:
+                ts = prev[k][1]
+            elif first:
+                ts = 0  # baseline: existing phone edits keep winning
+            else:
+                ts = now  # new car or master value changed
+                changed += 1
+            if stock in stamp_stocks and k in stamp_fields:
+                ts = now  # explicit master assertion (build.py --stamp)
+                changed += 1
+            rec[k] = [v, ts]
+        out[stock] = rec
+    SEED_TS_PATH.write_text(json.dumps(out, indent=1, sort_keys=True) + "\n")
+    print(f"seed-ts: {'baseline created' if first else str(changed) + ' field stamp(s) updated'}")
+    return out
+
+
+def seed_with_ts(seed: list, ts: dict) -> list:
+    """Embed nonzero master timestamps as _seedTs on each SEED car (page only)."""
+    out = []
+    for c in seed:
+        cc = dict(c)
+        st = {k: v[1] for k, v in ts.get(c.get("stock"), {}).items() if v[1]}
+        if st:
+            cc["_seedTs"] = st
+        out.append(cc)
+    return out
 
 
 def esc(s: str) -> str:
@@ -145,7 +205,14 @@ def inject(template: str, static: str, seed_json: str) -> str:
 
 
 def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--stamp", default="", help="Comma list of stock #s to re-assert from the master list even if unchanged")
+    ap.add_argument("--fields", default="lot,status", help="Fields to re-assert with --stamp (default lot,status)")
+    args = ap.parse_args()
     seed = json.loads(SEED_PATH.read_text())
+    stamp = [x.strip() for x in args.stamp.split(",") if x.strip()]
+    fields = [x.strip() for x in args.fields.split(",") if x.strip()]
+    ts = update_seed_ts(seed, stamp, fields)
     n9 = sum(1 for c in seed if c["lot"] == "9")
     n9inop = sum(1 for c in seed if c["lot"] == "9" and c.get("inop"))
     n12 = sum(1 for c in seed if c["lot"] == "12")
@@ -153,7 +220,7 @@ def main():
     naaa = sum(1 for c in seed if c["lot"] == "AAA")
     print(f"SEED: {len(seed)} cars — Lot 9: {n9} (inop {n9inop}), Lot 12: {n12}, Lot 1: {n1}, AAA: {naaa}")
     static = static_list(seed)
-    seed_json = json.dumps(seed, separators=(",", ":"))
+    seed_json = json.dumps(seed_with_ts(seed, ts), separators=(",", ":"))
     template = TEMPLATE.read_text()
     index = inject(template, static, seed_json)
     OUT_INDEX.write_text(index)

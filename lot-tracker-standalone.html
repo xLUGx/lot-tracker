@@ -299,7 +299,7 @@
     <button type="button" id="copyClose">Close</button>
   </div>
 </dialog>
-<script src="sync.js?v=3"></script>
+<script src="sync.js?v=4"></script>
 <script>
 (function () {
 "use strict";
@@ -484,6 +484,12 @@ function isEmptyVal(v) {
   return v == null || String(v).trim() === "";
 }
 
+/** Comparable form of a tracked field (booleans for flags, strings otherwise). */
+function normField(k, v) {
+  if (k === "inop" || k === "noCount") return !!v;
+  return String(v ?? "");
+}
+
 function diffAgainstSeed(car, seed, opts) {
   // opts.preferSeedIfLocalEmpty: when migrating old full lists, do not record
   // empty local workStatus/issues as overrides over non-empty SEED.
@@ -552,18 +558,29 @@ function migrateFromV1() {
   }
 }
 
+/** Master (SEED) timestamp for a field: 0 = baseline, else when a master update set it. */
+function seedTs(seedCar, k) {
+  return (seedCar && seedCar._seedTs && seedCar._seedTs[k]) || 0;
+}
+
 function applyOverride(seedCar, o) {
-  if (!o) return Object.assign({}, seedCar);
   const merged = Object.assign({}, seedCar);
+  delete merged._seedTs;
+  if (!o) return merged;
+  const ots = o._ts || {};
   for (const k of Object.keys(o)) {
     if (k === "updated") {
       merged.updated = o.updated;
       continue;
     }
     if (!(TRACKED.includes(k) || k === "stock")) continue;
+    // A newer master-list update beats an older phone edit of the same field
+    if ((ots[k] || 0) < seedTs(seedCar, k)) continue;
     const localVal = o[k];
-    if (SEED_PREFERS_IF_LOCAL_EMPTY.has(k) && isEmptyVal(localVal) && !isEmptyVal(seedCar[k])) {
-      continue; // SEED is source of truth when phone never set a real value
+    // Legacy blanks (no timestamp) from old full-snapshot saves never hide SEED.
+    // Explicit, timestamped clears (status/issue removed by the user) are honored.
+    if (ots[k] == null && SEED_PREFERS_IF_LOCAL_EMPTY.has(k) && isEmptyVal(localVal) && !isEmptyVal(seedCar[k])) {
+      continue;
     }
     merged[k] = localVal;
   }
@@ -571,43 +588,37 @@ function applyOverride(seedCar, o) {
 }
 
 function sanitizeOverrides() {
-  // Heal stale blanking overrides (old full snapshot / bad v1 migrate) and
-  // drop override fields that no longer differ from current SEED.
+  // Keep explicit user values even when they equal SEED (dropping them let a stale
+  // cloud value come back on the next sync). Only drop junk: non-objects, unknown
+  // keys, and legacy blanks without a timestamp that would hide SEED.
   const bySeed = seedByStock();
   let changed = false;
   const next = {};
   for (const stock of Object.keys(store.overrides || {})) {
-    const seed = bySeed[stock];
     const o = store.overrides[stock];
-    if (!o || typeof o !== "object") { changed = true; continue; }
-    if (!seed) {
-      // Orphan override for a stock no longer in SEED — keep as-is (rare)
-      next[stock] = o;
-      continue;
-    }
-    // Rebuild a clean diff from the effective local view, preferring SEED
-    // for empty workStatus/issues. Also handles full-car objects stored as overrides.
-    const localView = Object.assign({}, seed, o);
-    const d = diffAgainstSeed(localView, seed, { preferSeedIfLocalEmpty: true, prevOverride: o });
-    const fieldKeys = Object.keys(d).filter(k => k !== "updated");
-    if (!fieldKeys.length) {
-      changed = true;
-      continue;
-    }
-    // Detect change vs previous override
-    const prevKeys = Object.keys(o).sort().join(",");
-    const nextKeys = Object.keys(d).sort().join(",");
-    if (prevKeys !== nextKeys || JSON.stringify({...o, _ts: null}) !== JSON.stringify({...d, _ts: null})) changed = true;
-    // Preserve / refresh per-field timestamps for cloud LWW merge
-    if (o._ts) {
-      const nts = {};
-      for (const k of Object.keys(d)) {
-        if (k === "_ts") continue;
-        if (Object.prototype.hasOwnProperty.call(o, k) && String(o[k]) === String(d[k]) && o._ts[k] != null) nts[k] = o._ts[k];
-        else nts[k] = (o._ts && o._ts[k]) || Date.now();
+    if (!o || typeof o !== "object" || Array.isArray(o)) { changed = true; continue; }
+    const seed = bySeed[stock];
+    if (!seed) { next[stock] = o; continue; } // orphan (rare) — keep as-is
+    const ots = (o._ts && typeof o._ts === "object") ? o._ts : null;
+    const d = {};
+    const dts = {};
+    for (const k of Object.keys(o)) {
+      if (k === "_ts") continue;
+      if (k !== "updated" && !TRACKED.includes(k)) { changed = true; continue; }
+      const hasTs = !!(ots && ots[k] != null);
+      if (!hasTs && SEED_PREFERS_IF_LOCAL_EMPTY.has(k) && isEmptyVal(o[k]) && !isEmptyVal(seed[k])) {
+        changed = true; continue; // legacy blank
       }
-      d._ts = nts;
+      if (!hasTs && k !== "updated" && String(o[k] ?? "") === String(seed[k] ?? "") &&
+          !(k === "inop" || k === "noCount")) {
+        changed = true; continue; // legacy no-op copy of SEED (never set explicitly)
+      }
+      d[k] = o[k];
+      if (hasTs) dts[k] = ots[k];
     }
+    const fieldKeys = Object.keys(d).filter(k => k !== "updated");
+    if (!fieldKeys.length && !d.updated) { changed = true; continue; }
+    if (Object.keys(dts).length || ots) d._ts = dts;
     next[stock] = d;
   }
   if (changed || Object.keys(next).length !== Object.keys(store.overrides || {}).length) {
@@ -1045,13 +1056,30 @@ function persistCar(car, isNew, opts) {
     if (idx >= 0) store.added[idx] = stamped;
     else store.added.push(stamped);
   } else {
-    const prevO = store.overrides[car.stock];
-    const d = diffAgainstSeed(car, bySeed[car.stock], { preferSeedIfLocalEmpty: true, prevOverride: prevO });
-    const fieldKeys = Object.keys(d).filter(k => k !== "updated" && k !== "_ts");
-    if (fieldKeys.length || d.updated) {
-      store.overrides[car.stock] = LotSync.stampOverride(prevO, d);
-    } else {
-      delete store.overrides[car.stock];
+    // Write every field the user changed (vs. what was on screen) explicitly with a
+    // fresh _ts — even when the new value equals SEED — so it wins the cloud merge
+    // and a newer master update can still override older edits field by field.
+    const seed = bySeed[car.stock];
+    const before = prev || applyOverride(seed, store.overrides[car.stock]);
+    const prevO = store.overrides[car.stock] || null;
+    const o = prevO ? deepClone(prevO) : {};
+    const ts = Object.assign({}, (prevO && prevO._ts) || {});
+    const now = Date.now();
+    let touched = false;
+    for (const k of TRACKED) {
+      const nv = normField(k, car[k]);
+      const pv = normField(k, before[k]);
+      if (nv === pv) continue;
+      o[k] = (k === "inop" || k === "noCount") ? nv : (car[k] ?? "");
+      ts[k] = now;
+      touched = true;
+    }
+    if (car.updated && (touched || car.updated !== o.updated)) {
+      if (o.updated !== car.updated) { o.updated = car.updated; ts.updated = now; }
+    }
+    if (Object.keys(o).some(k => k !== "_ts")) {
+      o._ts = ts;
+      store.overrides[car.stock] = o;
     }
   }
   saveStore();

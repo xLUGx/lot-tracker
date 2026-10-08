@@ -19,6 +19,8 @@ Moving a car to Lot 1 (Move lot or the edit dialog) asks **Count this car in Car
 
 Run `python3 build.py` to regenerate `index.html` from `index.template.html` and `seed.json`.
 
+Master-list updates: edit `seed.json` and rebuild. `build.py` keeps per-field timestamps in `seed-ts.json` (0 = original baseline; build time when a master value changes). On phones, each field shows whichever is newer: the master value or the user's last edit of that field. To re-assert master values that did not change (e.g. a new Lot 12 list confirms cars are back on 12), run `python3 build.py --stamp 52171,52219` (default fields `lot,status`; override with `--fields`). Commit `seed-ts.json` with the rebuild.
+
 ## Cloud restore
 
 Every successful cloud write keeps a backup of the previous document (last ~200 per key) in the private `backups` table. To restore, an admin can copy a `backups` row back into `lot_private.docs` (or bump `version` and set `data`) via the database console — there is no public restore UI.

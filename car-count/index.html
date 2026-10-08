@@ -160,7 +160,7 @@
   </div>
 </dialog>
 
-<script src="../sync.js?v=3"></script>
+<script src="../sync.js?v=4"></script>
 <script>
 (function () {
 "use strict";
@@ -256,28 +256,27 @@ function snapshotToStore(SEED, cars) {
   return { overrides, added };
 }
 function sanitizedOverrides(SEED, overrides) {
-  // Same healing Lot Tracker applies on load, but in memory only.
-  const bySeed = seedByStock(SEED);
+  // Read-only view: keep explicit values and their _ts (same rules as Lot Tracker).
   const next = {};
   for (const stock of Object.keys(overrides || {})) {
-    const seed = bySeed[stock];
     const o = overrides[stock];
-    if (!o || typeof o !== "object") continue;
-    if (!seed) { next[stock] = o; continue; }
-    const d = diffAgainstSeed(Object.assign({}, seed, o), seed, { preferSeedIfLocalEmpty: true });
-    if (!Object.keys(d).some(k => k !== "updated")) continue;
-    next[stock] = d;
+    if (!o || typeof o !== "object" || Array.isArray(o)) continue;
+    next[stock] = o;
   }
   return next;
 }
 function applyOverride(seedCar, o) {
   const merged = Object.assign({}, seedCar);
+  delete merged._seedTs;
   if (!o) return merged;
+  const ots = o._ts || {};
+  const sts = seedCar._seedTs || {};
   for (const k of Object.keys(o)) {
     if (k === "updated") { merged.updated = o.updated; continue; }
     if (!(TRACKED.includes(k) || k === "stock")) continue;
+    if ((ots[k] || 0) < (sts[k] || 0)) continue; // newer master update wins
     const localVal = o[k];
-    if (SEED_PREFERS_IF_LOCAL_EMPTY.has(k) && isEmptyVal(localVal) && !isEmptyVal(seedCar[k])) continue;
+    if (ots[k] == null && SEED_PREFERS_IF_LOCAL_EMPTY.has(k) && isEmptyVal(localVal) && !isEmptyVal(seedCar[k])) continue;
     merged[k] = localVal;
   }
   return merged;

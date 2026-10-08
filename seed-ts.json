@@ -1,0 +1,3660 @@
+{
+ "48601-ARB": {
+  "color": [
+   "Grey",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "trans",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Chevrolet",
+   0
+  ],
+  "miles": [
+   "123242",
+   0
+  ],
+  "model": [
+   "Malibu",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-01-07",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "033920",
+   0
+  ],
+  "workStatus": [
+   "Needs motor or transmission",
+   0
+  ],
+  "year": [
+   "2021",
+   0
+  ]
+ },
+ "49945": {
+  "color": [
+   "Silver",
+   0
+  ],
+  "flag": [
+   "Printout showed 120 days beside this stock",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "9",
+   0
+  ],
+  "make": [
+   "Nissan",
+   0
+  ],
+  "miles": [
+   "121601",
+   0
+  ],
+  "model": [
+   "Altima",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-06-03",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "157714",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2019",
+   0
+  ]
+ },
+ "50386-I": {
+  "color": [
+   "Silver",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "9",
+   0
+  ],
+  "make": [
+   "Kia",
+   0
+  ],
+  "miles": [
+   "113199",
+   0
+  ],
+  "model": [
+   "Sorento",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-06-08",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "636211",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2015",
+   0
+  ]
+ },
+ "50401": {
+  "color": [
+   "White",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "9",
+   0
+  ],
+  "make": [
+   "Nissan",
+   0
+  ],
+  "miles": [
+   "151718",
+   0
+  ],
+  "model": [
+   "Altima",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-06-16",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "230076",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2020",
+   0
+  ]
+ },
+ "51210-I": {
+  "color": [
+   "Grey",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "9",
+   0
+  ],
+  "make": [
+   "Ford",
+   0
+  ],
+  "miles": [
+   "114130",
+   0
+  ],
+  "model": [
+   "Fusion",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-07-18",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "147813",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2012",
+   0
+  ]
+ },
+ "51249": {
+  "color": [
+   "Silver",
+   0
+  ],
+  "flag": [
+   "On 9/25 Lot 9 sheet; not on 10/01 Lot 9 seed",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "AAA",
+   0
+  ],
+  "make": [
+   "Chevrolet",
+   0
+  ],
+  "miles": [
+   "107265",
+   0
+  ],
+  "model": [
+   "Malibu",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-08-05",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "155707",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2014",
+   0
+  ]
+ },
+ "51256": {
+  "color": [
+   "",
+   0
+  ],
+  "flag": [
+   "Color not readable on 10/01 photo",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "9",
+   0
+  ],
+  "make": [
+   "Chevrolet",
+   0
+  ],
+  "miles": [
+   "143386",
+   0
+  ],
+  "model": [
+   "Traverse",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-08-07",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "292243",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2017",
+   0
+  ]
+ },
+ "51266": {
+  "color": [
+   "Black",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "9",
+   0
+  ],
+  "make": [
+   "Hyundai",
+   0
+  ],
+  "miles": [
+   "99609",
+   0
+  ],
+  "model": [
+   "Elantra",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-08-11",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "570682",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2020",
+   0
+  ]
+ },
+ "51340": {
+  "color": [
+   "Silver",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "needs checking",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Kia",
+   0
+  ],
+  "miles": [
+   "104367",
+   0
+  ],
+  "model": [
+   "Forte",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "15995",
+   0
+  ],
+  "purchased": [
+   "2026-07-03",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "305705",
+   0
+  ],
+  "workStatus": [
+   "Waiting on parts",
+   0
+  ],
+  "year": [
+   "2021",
+   0
+  ]
+ },
+ "51589": {
+  "color": [
+   "Blue",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "trans lines",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Chevrolet",
+   0
+  ],
+  "miles": [
+   "63855",
+   0
+  ],
+  "model": [
+   "Sonic",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-07-17",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "139822",
+   0
+  ],
+  "workStatus": [
+   "Needs motor or transmission",
+   0
+  ],
+  "year": [
+   "2015",
+   0
+  ]
+ },
+ "51709": {
+  "color": [
+   "Grey",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "checking",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Kia",
+   0
+  ],
+  "miles": [
+   "126888",
+   0
+  ],
+  "model": [
+   "Forte",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "15995",
+   0
+  ],
+  "purchased": [
+   "2026-07-21",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "291060",
+   0
+  ],
+  "workStatus": [
+   "Ready to come into shop",
+   0
+  ],
+  "year": [
+   "2021",
+   0
+  ]
+ },
+ "51916": {
+  "color": [
+   "Red",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "motor?",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Nissan",
+   0
+  ],
+  "miles": [
+   "110185",
+   0
+  ],
+  "model": [
+   "Altima",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-08-04",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "267254",
+   0
+  ],
+  "workStatus": [
+   "Waiting on parts",
+   0
+  ],
+  "year": [
+   "2018",
+   0
+  ]
+ },
+ "52084": {
+  "color": [
+   "Blue",
+   0
+  ],
+  "flag": [
+   "VIN partial printed as W76657",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "hood latch",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Mini",
+   0
+  ],
+  "miles": [
+   "76063",
+   0
+  ],
+  "model": [
+   "Cooper",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-08-11",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "W76657",
+   0
+  ],
+  "workStatus": [
+   "Ready to come into shop",
+   0
+  ],
+  "year": [
+   "2009",
+   0
+  ]
+ },
+ "52126": {
+  "color": [
+   "",
+   0
+  ],
+  "flag": [
+   "Color not readable on 10/01 photo",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "9",
+   0
+  ],
+  "make": [
+   "Nissan",
+   0
+  ],
+  "miles": [
+   "168991",
+   0
+  ],
+  "model": [
+   "Altima",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-08-18",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "246731",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2019",
+   0
+  ]
+ },
+ "52136": {
+  "color": [
+   "Grey",
+   0
+  ],
+  "flag": [
+   "On 9/25 Lot 9 sheet; not on 10/01 Lot 9 seed",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "AAA",
+   0
+  ],
+  "make": [
+   "Kia",
+   0
+  ],
+  "miles": [
+   "122899",
+   0
+  ],
+  "model": [
+   "Forte",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-08-21",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "223771",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2020",
+   0
+  ]
+ },
+ "52140": {
+  "color": [
+   "Grey",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "9",
+   0
+  ],
+  "make": [
+   "Mitsubishi",
+   0
+  ],
+  "miles": [
+   "122463",
+   0
+  ],
+  "model": [
+   "Mirage",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-08-24",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "008682",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2017",
+   0
+  ]
+ },
+ "52145": {
+  "color": [
+   "White",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "9",
+   0
+  ],
+  "make": [
+   "Buick",
+   0
+  ],
+  "miles": [
+   "135787",
+   0
+  ],
+  "model": [
+   "Enclave",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-08-24",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "251039",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2016",
+   0
+  ]
+ },
+ "52167": {
+  "color": [
+   "Gold",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Buick",
+   0
+  ],
+  "miles": [
+   "104872",
+   0
+  ],
+  "model": [
+   "Enclave",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-08",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "188593",
+   0
+  ],
+  "workStatus": [
+   "Ready to come into shop",
+   0
+  ],
+  "year": [
+   "2014",
+   0
+  ]
+ },
+ "52171": {
+  "color": [
+   "Black",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "9",
+   0
+  ],
+  "make": [
+   "Mazda",
+   0
+  ],
+  "miles": [
+   "143585",
+   0
+  ],
+  "model": [
+   "Mazda3",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-08",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "275241",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2016",
+   0
+  ]
+ },
+ "52175": {
+  "color": [
+   "Silver",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "2 tires & wheel",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Hyundai",
+   0
+  ],
+  "miles": [
+   "109698",
+   0
+  ],
+  "model": [
+   "Accent",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-09",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "289342",
+   0
+  ],
+  "workStatus": [
+   "Ready to come into shop",
+   0
+  ],
+  "year": [
+   "2017",
+   0
+  ]
+ },
+ "52177": {
+  "color": [
+   "Grey",
+   0
+  ],
+  "flag": [
+   "Circled on 9/25 Lot 9 sheet; not on 10/01 Lot 9 seed",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "AAA",
+   0
+  ],
+  "make": [
+   "Nissan",
+   0
+  ],
+  "miles": [
+   "112008",
+   0
+  ],
+  "model": [
+   "Xterra",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-09",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "528837",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2006",
+   0
+  ]
+ },
+ "52184": {
+  "color": [
+   "Black",
+   0
+  ],
+  "flag": [
+   "On 9/25 Lot 9 sheet; not on 10/01 Lot 9 seed",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "AAA",
+   0
+  ],
+  "make": [
+   "Ford",
+   0
+  ],
+  "miles": [
+   "90057",
+   0
+  ],
+  "model": [
+   "Fusion",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-10",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "352949",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2017",
+   0
+  ]
+ },
+ "52185-I": {
+  "color": [
+   "Silver",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "9",
+   0
+  ],
+  "make": [
+   "Chevrolet",
+   0
+  ],
+  "miles": [
+   "111465",
+   0
+  ],
+  "model": [
+   "Malibu",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-10",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "233668",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2015",
+   0
+  ]
+ },
+ "52187": {
+  "color": [
+   "Grey",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "9",
+   0
+  ],
+  "make": [
+   "Nissan",
+   0
+  ],
+  "miles": [
+   "193852",
+   0
+  ],
+  "model": [
+   "Altima",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-11",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "478351",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2015",
+   0
+  ]
+ },
+ "52189-I": {
+  "color": [
+   "Silver",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "9",
+   0
+  ],
+  "make": [
+   "Dodge",
+   0
+  ],
+  "miles": [
+   "171311",
+   0
+  ],
+  "model": [
+   "Journey",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-11",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "803406",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2019",
+   0
+  ]
+ },
+ "52192": {
+  "color": [
+   "Grey",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "9",
+   0
+  ],
+  "make": [
+   "Dodge",
+   0
+  ],
+  "miles": [
+   "174606",
+   0
+  ],
+  "model": [
+   "Journey",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-14",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "944642",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2015",
+   0
+  ]
+ },
+ "52196": {
+  "color": [
+   "White",
+   0
+  ],
+  "flag": [
+   "On 9/25 Lot 9 sheet; not on 10/01 Lot 9 seed",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "AAA",
+   0
+  ],
+  "make": [
+   "Chrysler",
+   0
+  ],
+  "miles": [
+   "168355",
+   0
+  ],
+  "model": [
+   "300",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-17",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "289270",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2014",
+   0
+  ]
+ },
+ "52197": {
+  "color": [
+   "Gold",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Chevrolet",
+   0
+  ],
+  "miles": [
+   "168888",
+   0
+  ],
+  "model": [
+   "Malibu",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-17",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "303874",
+   0
+  ],
+  "workStatus": [
+   "In the shop",
+   0
+  ],
+  "year": [
+   "2014",
+   0
+  ]
+ },
+ "52198": {
+  "color": [
+   "White",
+   0
+  ],
+  "flag": [
+   "VIN partial printed oddly as C03594 \u2014 verify",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "9",
+   0
+  ],
+  "make": [
+   "Jeep",
+   0
+  ],
+  "miles": [
+   "170530",
+   0
+  ],
+  "model": [
+   "Grand Cherokee",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-17",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "C03594",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2015",
+   0
+  ]
+ },
+ "52199": {
+  "color": [
+   "Red",
+   0
+  ],
+  "flag": [
+   "On 9/25 Lot 9 sheet; not on 10/01 Lot 9 seed",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "AAA",
+   0
+  ],
+  "make": [
+   "Chevrolet",
+   0
+  ],
+  "miles": [
+   "137795",
+   0
+  ],
+  "model": [
+   "Equinox",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-17",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "152440",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2017",
+   0
+  ]
+ },
+ "52200": {
+  "color": [
+   "",
+   0
+  ],
+  "flag": [
+   "Color not readable on 10/01 photo",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "9",
+   0
+  ],
+  "make": [
+   "Jeep",
+   0
+  ],
+  "miles": [
+   "198150",
+   0
+  ],
+  "model": [
+   "Grand Cherokee",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-29",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "305496",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2012",
+   0
+  ]
+ },
+ "52202": {
+  "color": [
+   "White",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "9",
+   0
+  ],
+  "make": [
+   "Ford",
+   0
+  ],
+  "miles": [
+   "140895",
+   0
+  ],
+  "model": [
+   "Explorer",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-21",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "382784",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2013",
+   0
+  ]
+ },
+ "52204-I": {
+  "color": [
+   "Black",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "9",
+   0
+  ],
+  "make": [
+   "Dodge",
+   0
+  ],
+  "miles": [
+   "144804",
+   0
+  ],
+  "model": [
+   "Grand Caravan",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-21",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "120245",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2016",
+   0
+  ]
+ },
+ "52205": {
+  "color": [
+   "White",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "tires",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Ram",
+   0
+  ],
+  "miles": [
+   "140267",
+   0
+  ],
+  "model": [
+   "1500",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-21",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "114328",
+   0
+  ],
+  "workStatus": [
+   "Ready to come into shop",
+   0
+  ],
+  "year": [
+   "2018",
+   0
+  ]
+ },
+ "52206": {
+  "color": [
+   "White",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "tires",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Nissan",
+   0
+  ],
+  "miles": [
+   "116250",
+   0
+  ],
+  "model": [
+   "Sentra",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-21",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "294079",
+   0
+  ],
+  "workStatus": [
+   "Ready to come into shop",
+   0
+  ],
+  "year": [
+   "2017",
+   0
+  ]
+ },
+ "52207": {
+  "color": [
+   "Black",
+   0
+  ],
+  "flag": [
+   "On 9/25 Lot 9 sheet; not on 10/01 Lot 9 seed",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "AAA",
+   0
+  ],
+  "make": [
+   "Nissan",
+   0
+  ],
+  "miles": [
+   "126664",
+   0
+  ],
+  "model": [
+   "Altima",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-23",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "138066",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2014",
+   0
+  ]
+ },
+ "52208": {
+  "color": [
+   "",
+   0
+  ],
+  "flag": [
+   "Color not readable on 10/01 photo",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "9",
+   0
+  ],
+  "make": [
+   "Chevrolet",
+   0
+  ],
+  "miles": [
+   "126461",
+   0
+  ],
+  "model": [
+   "Equinox",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-28",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "613604",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2015",
+   0
+  ]
+ },
+ "52209": {
+  "color": [
+   "Grey",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Nissan",
+   0
+  ],
+  "miles": [
+   "107966",
+   0
+  ],
+  "model": [
+   "Altima",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-28",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "162680",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2018",
+   0
+  ]
+ },
+ "52210": {
+  "color": [
+   "Gold",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Chevrolet",
+   0
+  ],
+  "miles": [
+   "144500",
+   0
+  ],
+  "model": [
+   "Malibu",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-28",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "345988",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2015",
+   0
+  ]
+ },
+ "52211-I": {
+  "color": [
+   "Red",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "9",
+   0
+  ],
+  "make": [
+   "Hyundai",
+   0
+  ],
+  "miles": [
+   "151603",
+   0
+  ],
+  "model": [
+   "Sonata",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-28",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "241021",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2015",
+   0
+  ]
+ },
+ "52212": {
+  "color": [
+   "Blue",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Chevrolet",
+   0
+  ],
+  "miles": [
+   "127431",
+   0
+  ],
+  "model": [
+   "Equinox",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-28",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "520653",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2017",
+   0
+  ]
+ },
+ "52213": {
+  "color": [
+   "Grey",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "9",
+   0
+  ],
+  "make": [
+   "Dodge",
+   0
+  ],
+  "miles": [
+   "134755",
+   0
+  ],
+  "model": [
+   "Journey",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-28",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "516597",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2017",
+   0
+  ]
+ },
+ "52214": {
+  "color": [
+   "Grey",
+   0
+  ],
+  "flag": [
+   "VIN last-6 may be 133041 or J33041",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Jeep",
+   0
+  ],
+  "miles": [
+   "129184",
+   0
+  ],
+  "model": [
+   "Renegade",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-28",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "133041",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2018",
+   0
+  ]
+ },
+ "52216": {
+  "color": [
+   "Grey",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Kia",
+   0
+  ],
+  "miles": [
+   "192100",
+   0
+  ],
+  "model": [
+   "Sorento",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-29",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "292675",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2017",
+   0
+  ]
+ },
+ "52217": {
+  "color": [
+   "Grey",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Lincoln",
+   0
+  ],
+  "miles": [
+   "58703",
+   0
+  ],
+  "model": [
+   "MKZ",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-29",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "629386",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2008",
+   0
+  ]
+ },
+ "52218": {
+  "color": [
+   "Silver",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Toyota",
+   0
+  ],
+  "miles": [
+   "135678",
+   0
+  ],
+  "model": [
+   "Camry",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-29",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "101937",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2012",
+   0
+  ]
+ },
+ "52219": {
+  "color": [
+   "Red",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Dodge",
+   0
+  ],
+  "miles": [
+   "166593",
+   0
+  ],
+  "model": [
+   "Journey",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-29",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "805183",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2019",
+   0
+  ]
+ },
+ "52220": {
+  "color": [
+   "Grey",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Hyundai",
+   0
+  ],
+  "miles": [
+   "81930",
+   0
+  ],
+  "model": [
+   "Elantra",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-29",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "573317",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2020",
+   0
+  ]
+ },
+ "52221": {
+  "color": [
+   "Black",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Chevrolet",
+   0
+  ],
+  "miles": [
+   "118081",
+   0
+  ],
+  "model": [
+   "Camaro",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-29",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "172408",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2010",
+   0
+  ]
+ },
+ "52413": {
+  "color": [
+   "Grey",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "trans",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Chrysler",
+   0
+  ],
+  "miles": [
+   "59583",
+   0
+  ],
+  "model": [
+   "300",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-08-25",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "202951",
+   0
+  ],
+  "workStatus": [
+   "Needs motor or transmission",
+   0
+  ],
+  "year": [
+   "2014",
+   0
+  ]
+ },
+ "52616": {
+  "color": [
+   "",
+   0
+  ],
+  "flag": [
+   "Color not readable on 10/01 photo",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Honda",
+   0
+  ],
+  "miles": [
+   "144635",
+   0
+  ],
+  "model": [
+   "Accord",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-04",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "122111",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2012",
+   0
+  ]
+ },
+ "52617": {
+  "color": [
+   "Grey",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Ford",
+   0
+  ],
+  "miles": [
+   "120491",
+   0
+  ],
+  "model": [
+   "Taurus",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-04",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "170783",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2015",
+   0
+  ]
+ },
+ "52757": {
+  "color": [
+   "Silver",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "rust",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Honda",
+   0
+  ],
+  "miles": [
+   "166164",
+   0
+  ],
+  "model": [
+   "CR-V",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-09",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "009383",
+   0
+  ],
+  "workStatus": [
+   "Needs motor or transmission",
+   0
+  ],
+  "year": [
+   "2010",
+   0
+  ]
+ },
+ "52802": {
+  "color": [
+   "White",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Toyota",
+   0
+  ],
+  "miles": [
+   "157367",
+   0
+  ],
+  "model": [
+   "Corolla",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-16",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "276785",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2015",
+   0
+  ]
+ },
+ "52825": {
+  "color": [
+   "White",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Cadillac",
+   0
+  ],
+  "miles": [
+   "102007",
+   0
+  ],
+  "model": [
+   "SRX",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-18",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "631534",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2015",
+   0
+  ]
+ },
+ "52841": {
+  "color": [
+   "Grey",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "mirror",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Ford",
+   0
+  ],
+  "miles": [
+   "106413",
+   0
+  ],
+  "model": [
+   "Fusion",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-22",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "205849",
+   0
+  ],
+  "workStatus": [
+   "Ready to come into shop",
+   0
+  ],
+  "year": [
+   "2016",
+   0
+  ]
+ },
+ "52844": {
+  "color": [
+   "Blue",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Lincoln",
+   0
+  ],
+  "miles": [
+   "106295",
+   0
+  ],
+  "model": [
+   "MKS",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-22",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "613019",
+   0
+  ],
+  "workStatus": [
+   "Ready for lot",
+   0
+  ],
+  "year": [
+   "2010",
+   0
+  ]
+ },
+ "52901": {
+  "color": [
+   "Gold",
+   0
+  ],
+  "flag": [
+   "",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "12",
+   0
+  ],
+  "make": [
+   "Lincoln",
+   0
+  ],
+  "miles": [
+   "138238",
+   0
+  ],
+  "model": [
+   "MKZ",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-29",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "829942",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2014",
+   0
+  ]
+ },
+ "52902-I": {
+  "color": [
+   "",
+   0
+  ],
+  "flag": [
+   "Color not readable on 10/01 photo",
+   0
+  ],
+  "inop": [
+   false,
+   0
+  ],
+  "issues": [
+   "",
+   0
+  ],
+  "lot": [
+   "9",
+   0
+  ],
+  "make": [
+   "Dodge",
+   0
+  ],
+  "miles": [
+   "149741",
+   0
+  ],
+  "model": [
+   "Charger",
+   0
+  ],
+  "photo": [
+   "",
+   0
+  ],
+  "price": [
+   "0",
+   0
+  ],
+  "purchased": [
+   "2026-09-30",
+   0
+  ],
+  "status": [
+   "On lot",
+   0
+  ],
+  "vin": [
+   "500929",
+   0
+  ],
+  "workStatus": [
+   "",
+   0
+  ],
+  "year": [
+   "2015",
+   0
+  ]
+ }
+}
