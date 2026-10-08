@@ -74,6 +74,35 @@
   .copy-fallback { white-space:pre-wrap; background:#10161b; border:1px solid var(--line); border-radius:10px; padding:10px; font-size:13px; margin-top:10px; max-height:45vh; overflow:auto; }
   .foot { color:var(--muted); font-size:12px; margin:22px 0 0; line-height:1.45; }
   #app[hidden], #bar[hidden] { display:none !important; }
+  /* View tabs */
+  .vtabs { display:flex; gap:6px; margin-top:8px; }
+  .vtabs button { flex:1; font-size:14px; padding:8px 6px; }
+  .vtabs button.on { background:var(--l1-deep); border-color:var(--l1); color:#fff; font-weight:650; }
+  #countView[hidden], #bonusView[hidden] { display:none !important; }
+  /* Bonus */
+  .bonus-big { display:flex; gap:8px; margin:4px 0 8px; }
+  .bonus-big div { flex:1; background:var(--card); border-radius:14px; padding:12px 6px; text-align:center; border-top:4px solid var(--l1); min-width:0; }
+  .bonus-big b { display:block; font-size:30px; line-height:1.2; font-weight:750; white-space:nowrap; }
+  .bonus-big span { color:var(--muted); font-size:12px; }
+  .bonus-total { background:var(--card); border-radius:14px; padding:14px 12px; text-align:center; border:1px solid var(--l1-deep); margin:0 0 8px; }
+  .bonus-total b { display:block; font-size:48px; line-height:1.1; font-weight:800; color:#fff; }
+  .bonus-total span { color:var(--muted); font-size:13px; }
+  .bonus-math { color:#c5d0d6; font-size:14px; margin-top:4px; }
+  .prog { background:var(--card); border-radius:14px; padding:12px; margin:0 0 8px; }
+  .prog .lbl { font-size:16px; font-weight:650; margin:0 0 8px; }
+  .prog .track { height:12px; background:#10161b; border-radius:99px; overflow:hidden; border:1px solid var(--line); }
+  .prog .fill { height:100%; background:linear-gradient(90deg, var(--l1-deep), var(--l1)); border-radius:99px; }
+  .prog .ends { display:flex; justify-content:space-between; color:var(--muted); font-size:12px; margin-top:4px; }
+  .prog .more { color:var(--gold); font-size:14px; margin-top:8px; }
+  .tiers .t { display:flex; justify-content:space-between; gap:8px; padding:10px 0; border-top:1px solid var(--line); font-size:14px; }
+  .tiers .t:first-child { border-top:0; }
+  .tiers .t.on { color:#fff; font-weight:700; }
+  .tiers .t.on span:first-child::before { content:"▶ "; color:var(--l1); }
+  .tiers .t span:last-child { color:var(--muted); }
+  .tiers .t.on span:last-child { color:var(--ink); }
+  .bm .m { display:flex; justify-content:space-between; gap:8px; padding:10px 0; border-top:1px solid var(--line); font-size:14px; }
+  .bm .m:first-child { border-top:0; }
+  .bm .m b { font-size:15px; }
 </style>
 </head>
 <body>
@@ -86,10 +115,15 @@
     </div>
     <button type="button" class="small" id="refresh" title="Re-read Lot Tracker seed and sync cloud data">Refresh</button>
   </div>
+  <div class="vtabs" id="vtabs">
+    <button type="button" class="on" data-view="count">Count</button>
+    <button type="button" data-view="bonus">Bonus</button>
+  </div>
 </header>
 <main>
   <noscript><p class="note">Car Count needs JavaScript. Open this page in Safari (not a Files/Quick Look preview) with JavaScript turned on.</p></noscript>
   <div id="app" hidden>
+   <div id="countView">
     <div class="big">
       <div><b id="todayN">0</b><span id="todayLbl">Today</span></div>
       <div class="month"><b id="monthN">0</b><span id="monthLbl">This month</span></div>
@@ -116,6 +150,33 @@
       Car Count reads Lot Tracker from the cloud (plus the server seed list). A car counts once each time it lands on Lot 1, dated by the Lot Tracker move date (or the first day Car Count saw it). Logged units stay counted even after they leave Lot 1.
       Lot Tracker also logs Lot 1 moves into this count when you move a car there, so counts stay accurate even if Car Count is not open.
     </p>
+   </div>
+   <div id="bonusView" hidden>
+    <h2 id="bonusHead" style="margin-top:4px">Bonus · this month</h2>
+    <div class="bonus-big">
+      <div><b id="bCount">0</b><span>Cars this month</span></div>
+      <div><b id="bRate">$20</b><span>Per car</span></div>
+    </div>
+    <div class="bonus-total">
+      <b id="bTotal">$0</b>
+      <span>Bonus so far</span>
+      <div class="bonus-math" id="bMath"></div>
+    </div>
+    <div class="prog">
+      <div class="lbl" id="bNext"></div>
+      <div class="track"><div class="fill" id="bFill" style="width:0%"></div></div>
+      <div class="ends"><span id="bFrom"></span><span id="bTo"></span></div>
+      <div class="more" id="bMore"></div>
+    </div>
+    <h2>Rate tiers</h2>
+    <div class="card tiers" id="bTiers"></div>
+    <h2>Past months</h2>
+    <div class="card bm" id="bMonths"></div>
+    <p class="foot">
+      Rate is flat for the whole month: $20/car up to 69 cars, then +$1/car at 70, 80, 90, 100 and 110 cars (max $25/car).
+      Bonus = rate × cars counted that month. Uses the same counted Lot 1 units as the Count tab; cars marked "Not counted" or removed are not included.
+    </p>
+   </div>
   </div>
 </main>
 <div class="bar" id="bar" hidden>
@@ -160,7 +221,7 @@
   </div>
 </dialog>
 
-<script src="../sync.js?v=4"></script>
+<script src="../sync.js?v=5"></script>
 <script>
 (function () {
 "use strict";
@@ -603,7 +664,84 @@ function render() {
           <div class="meta vin">VIN (last 6): ${esc(c.vin || "—")}${c.noCount ? " · not counted" : (a ? " · counted " + esc(shortDate(a.date)) : "")}</div></div></div>`;
       }).join("")
     : `<p class="empty">No cars on Lot 1 right now.</p>`;
+
+  renderBonus(entries, curMonth);
 }
+
+// ---- Bonus ---------------------------------------------------------------
+const BONUS_BASE = 20, BONUS_CAP = 25, BONUS_START = 60, BONUS_STEP = 10;
+function bonusRate(count) {
+  return Math.min(BONUS_CAP, BONUS_BASE + Math.max(0, Math.floor((count - BONUS_START) / BONUS_STEP)));
+}
+/** Car count where the next rate starts (null when capped). */
+function nextTierAt(count) {
+  const r = bonusRate(count);
+  if (r >= BONUS_CAP) return null;
+  return BONUS_START + (r - BONUS_BASE + 1) * BONUS_STEP;
+}
+function money(n) { return "$" + Number(n).toLocaleString("en-US"); }
+let view = (location.hash === "#bonus") ? "bonus" : "count";
+
+function renderBonus(entries, curMonth) {
+  const count = entries.filter(e => e.date.startsWith(curMonth)).length;
+  const rate = bonusRate(count);
+  const total = rate * count;
+  $("bonusHead").textContent = "Bonus · " + monthLabel(curMonth);
+  $("bCount").textContent = count;
+  $("bRate").textContent = money(rate);
+  $("bTotal").textContent = money(total);
+  $("bMath").textContent = `${count} ${count === 1 ? "car" : "cars"} × ${money(rate)}/car`;
+  const nxt = nextTierAt(count);
+  if (nxt == null) {
+    $("bNext").textContent = `Capped at ${money(BONUS_CAP)}/car`;
+    $("bFill").style.width = "100%";
+    $("bFrom").textContent = (BONUS_START + (BONUS_CAP - BONUS_BASE) * BONUS_STEP) + " cars";
+    $("bTo").textContent = "max rate";
+    $("bMore").textContent = `Every extra car adds ${money(BONUS_CAP)}.`;
+  } else {
+    const nextRate = rate + 1;
+    const need = nxt - count;
+    const from = rate === BONUS_BASE ? 0 : nxt - BONUS_STEP;
+    const pct = Math.max(0, Math.min(100, ((count - from) / (nxt - from)) * 100));
+    $("bNext").textContent = `${need} more to ${money(nextRate)}/car`;
+    $("bFill").style.width = pct.toFixed(1) + "%";
+    $("bFrom").textContent = `${from} cars · ${money(rate)}`;
+    $("bTo").textContent = `${nxt} cars · ${money(nextRate)}`;
+    const atNext = nxt * nextRate;
+    $("bMore").textContent = `Hit ${nxt} cars → ${money(atNext)} bonus (+${money(atNext - total)} vs now).`;
+  }
+  // Tier table
+  const tiers = [];
+  for (let r = BONUS_BASE; r <= BONUS_CAP; r++) {
+    const lo = r === BONUS_BASE ? 0 : BONUS_START + (r - BONUS_BASE) * BONUS_STEP;
+    const hi = r === BONUS_CAP ? null : BONUS_START + (r - BONUS_BASE + 1) * BONUS_STEP - 1;
+    const range = hi == null ? `${lo}+ cars` : (lo === 0 ? `Up to ${hi} cars` : `${lo}–${hi} cars`);
+    const start = r === BONUS_BASE ? "" : `${lo} cars = ${money(lo * r)}`;
+    tiers.push(`<div class="t${r === rate ? " on" : ""}"><span>${range} · ${money(r)}/car</span><span>${start}</span></div>`);
+  }
+  $("bTiers").innerHTML = tiers.join("");
+  // Past months (from counted entries)
+  const byMonth = new Map();
+  for (const e of entries) byMonth.set(e.date.slice(0, 7), (byMonth.get(e.date.slice(0, 7)) || 0) + 1);
+  if (!byMonth.has(curMonth)) byMonth.set(curMonth, 0);
+  $("bMonths").innerHTML = [...byMonth.keys()].sort().reverse().map(m => {
+    const n = byMonth.get(m), r = bonusRate(n);
+    return `<div class="m"><span>${esc(monthLabel(m))}${m === curMonth ? " · so far" : ""}</span><span>${n} × ${money(r)} = <b>${money(n * r)}</b></span></div>`;
+  }).join("");
+}
+
+function setView(v) {
+  view = v === "bonus" ? "bonus" : "count";
+  document.querySelectorAll("#vtabs button").forEach(b => b.classList.toggle("on", b.getAttribute("data-view") === view));
+  $("countView").hidden = view !== "count";
+  $("bonusView").hidden = view !== "bonus";
+  try { history.replaceState(null, "", view === "bonus" ? "#bonus" : location.pathname + location.search); } catch (e) {}
+}
+document.querySelectorAll("#vtabs button").forEach(b => b.addEventListener("click", () => {
+  setView(b.getAttribute("data-view"));
+  render();
+  window.scrollTo(0, 0);
+}));
 
 // ---- Actions ---------------------------------------------------------------
 document.addEventListener("click", (ev) => {
@@ -796,6 +934,7 @@ window.__lotSync = new LotSync.SyncEngine({
 });
 
 async function bootWithSync() {
+  setView(view);
   $("app").hidden = false;
   $("bar").hidden = false;
   loading = true;
