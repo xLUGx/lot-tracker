@@ -221,7 +221,7 @@
   </div>
 </dialog>
 
-<script src="../sync.js?v=5"></script>
+<script src="../sync.js?v=6"></script>
 <script>
 (function () {
 "use strict";
@@ -373,7 +373,7 @@ function mergeCars(SEED, store) {
   const bySeed = seedByStock(SEED);
   const out = SEED.map(c => applyOverride(c, store.overrides[c.stock]));
   for (const a of store.added) {
-    if (a && a.stock && !bySeed[a.stock]) out.push(Object.assign({}, a));
+    if (a && a.stock && !a.deleted && !bySeed[a.stock]) out.push(Object.assign({}, a));
   }
   for (const c of out) {
     c.lot = normLot(c.lot);

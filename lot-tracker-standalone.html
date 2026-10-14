@@ -301,7 +301,7 @@
     <button type="button" id="copyClose">Close</button>
   </div>
 </dialog>
-<script src="sync.js?v=4"></script>
+<script src="sync.js?v=6"></script>
 <script>
 (function () {
 "use strict";
@@ -719,6 +719,8 @@ function mergeCars() {
   const bySeed = seedByStock();
   const out = SEED.map(c => applyOverride(c, store.overrides[c.stock]));
   for (const a of store.added) {
+    // deleted: approved duplicate/rename cleanup — record kept as a synced tombstone, hidden
+    if (a && a.deleted) continue;
     if (!bySeed[a.stock]) out.push(Object.assign({}, a));
   }
   // Cars must never disappear via Sold/Moved/Wholesale — keep visible at their lot
